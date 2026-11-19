@@ -157,6 +157,9 @@
         "price": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0"
         },
+        "staff": {
+          ".validate": "newData.isBoolean()"
+        },
         "$other": {
           ".validate": "false"
         }
@@ -166,7 +169,7 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid && newData.exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()",
-        ".validate": "newData.hasChildren(['item','key','t']) && newData.child('t').val() === now && (!data.exists() || data.child('t').val() < now - 800) && root.child('catalog').child(newData.child('item').val()).exists() && !root.child('inventory').child($uid).child(newData.child('key').val()).exists() && newData.parent().parent().child('inventory').child($uid).child(newData.child('key').val()).child('type').val() === newData.child('item').val() && (root.child('admins').child(auth.uid).exists() || newData.parent().parent().child('wallets').child($uid).child('coins').val() === root.child('wallets').child($uid).child('coins').val() - root.child('catalog').child(newData.child('item').val()).child('price').val())",
+        ".validate": "newData.hasChildren(['item','key','t']) && newData.child('t').val() === now && (!data.exists() || data.child('t').val() < now - 800) && root.child('catalog').child(newData.child('item').val()).exists() && !root.child('inventory').child($uid).child(newData.child('key').val()).exists() && newData.parent().parent().child('inventory').child($uid).child(newData.child('key').val()).child('type').val() === newData.child('item').val() && (root.child('admins').child(auth.uid).exists() || newData.parent().parent().child('wallets').child($uid).child('coins').val() === root.child('wallets').child($uid).child('coins').val() - root.child('catalog').child(newData.child('item').val()).child('price').val()) && !root.child('catalog').child(newData.child('item').val()).child('staff').exists()",
         "item": {
           ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 32"
         },
@@ -364,7 +367,7 @@
         ".read": "auth != null && auth.uid === $uid",
         "$k": {
           ".write": "auth != null && auth.uid === $uid",
-          ".validate": "newData.val() === now && ($k === 'chat' || $k === 'room' || $k === 'report')"
+          ".validate": "newData.val() === now && ($k === 'chat' || $k === 'room' || $k === 'report' || $k === 'post')"
         }
       }
     },
@@ -413,6 +416,194 @@
       ".read": "root.child('admins').child(auth.uid).exists()",
       "$uid": {
         ".write": "auth != null && ((auth.uid === $uid && !data.exists()) || (root.child('admins').child(auth.uid).exists() && !newData.exists()))"
+      }
+    },
+    "act": {
+      "$rid": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && $uid === auth.uid && (!newData.exists() || (!root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('players').child(auth.uid).child('room').val() === $rid))",
+          ".validate": "newData.hasChildren(['a','t'])",
+          "a": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "h": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "gift": {
+      "$rid": {
+        "$to": {
+          ".read": "auth != null && auth.uid === $to",
+          ".write": "auth != null && ((auth.uid === $to && !newData.exists()) || (newData.exists() && newData.child('from').val() === auth.uid && $to !== auth.uid && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('players').child(auth.uid).child('room').val() === $rid))",
+          ".validate": "newData.hasChildren(['from','name','h','t'])",
+          "from": {
+            ".validate": "newData.isString()"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16"
+          },
+          "h": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "social": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && $uid === auth.uid && newData.exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['bio','t'])",
+        "bio": {
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "t": {
+          ".validate": "data.exists() ? newData.val() === data.val() : newData.val() === now"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "posts": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "t"
+      ],
+      "$pid": {
+        ".write": "auth != null && ((!data.exists() && newData.exists() && newData.child('uid').val() === auth.uid && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('social').child(auth.uid).exists() && newData.parent().parent().child('rate').child(auth.uid).child('post').val() === now && (!root.child('rate').child(auth.uid).child('post').exists() || root.child('rate').child(auth.uid).child('post').val() < now - 20000)) || (data.exists() && !newData.exists() && (data.child('uid').val() === auth.uid || root.child('admins').child(auth.uid).exists())))",
+        ".validate": "newData.hasChildren(['uid','name','img','t'])",
+        "uid": {
+          ".validate": "newData.val() === auth.uid"
+        },
+        "name": {
+          ".validate": "newData.val() === root.child('users').child(auth.uid).child('name').val()"
+        },
+        "img": {
+          ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 70000"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "t": {
+          ".validate": "newData.val() === now"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "likes": {
+      ".read": "auth != null",
+      "$pid": {
+        "$uid": {
+          ".write": "auth != null && $uid === auth.uid && (!newData.exists() || (!root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('posts').child($pid).exists()))",
+          ".validate": "newData.val() === true"
+        }
+      }
+    },
+    "photos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$pid": {
+          ".write": "auth != null && $uid === auth.uid && (!newData.exists() || !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists())",
+          ".validate": "newData.hasChildren(['img','t'])",
+          "img": {
+            ".validate": "newData.isString() && newData.val().beginsWith('data:image/jpeg;base64,') && newData.val().length <= 70000"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "freq": {
+      "$to": {
+        ".read": "auth != null && auth.uid === $to",
+        "$from": {
+          ".write": "auth != null && $from !== $to && ((auth.uid === $from && (!newData.exists() || (!data.exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('users').child($to).exists() && !root.child('friends').child($from).child($to).exists()))) || (auth.uid === $to && !newData.exists()))",
+          ".validate": "newData.hasChildren(['name','t'])",
+          "name": {
+            ".validate": "newData.val() === root.child('users').child(auth.uid).child('name').val()"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "friends": {
+      "$a": {
+        ".read": "auth != null && auth.uid === $a",
+        "$b": {
+          ".write": "auth != null && $a !== $b && ((!newData.exists() && (auth.uid === $a || auth.uid === $b)) || (newData.val() === true && ((auth.uid === $a && root.child('freq').child($a).child($b).exists()) || (auth.uid === $b && root.child('freq').child($b).child($a).exists()))))",
+          ".validate": "newData.val() === true"
+        }
+      }
+    },
+    "dm": {
+      "$conv": {
+        ".read": "auth != null && ($conv.beginsWith(auth.uid + '_') || $conv.endsWith('_' + auth.uid))",
+        "$mid": {
+          ".write": "auth != null && !data.exists() && newData.exists() && ($conv.beginsWith(auth.uid + '_') || $conv.endsWith('_' + auth.uid)) && root.child('friends').child(auth.uid).child($conv.replace(auth.uid, '').replace('_', '')).exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()",
+          ".validate": "newData.hasChildren(['from','text','t'])",
+          "from": {
+            ".validate": "newData.val() === auth.uid"
+          },
+          "text": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300"
+          },
+          "t": {
+            ".validate": "newData.val() === now"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "dmidx": {
+      "$a": {
+        ".read": "auth != null && auth.uid === $a",
+        "$b": {
+          ".write": "auth != null && (auth.uid === $a || auth.uid === $b) && (!newData.exists() || (root.child('friends').child($a).child($b).exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()))",
+          ".validate": "newData.hasChildren(['t','unread'])",
+          "t": {
+            ".validate": "newData.isNumber() && newData.val() <= now"
+          },
+          "last": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "unread": {
+            ".validate": "newData.isBoolean() && (auth.uid === $a || newData.val() === true)"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
       }
     }
   }

@@ -67,3 +67,29 @@ buys/{uid}               = { item, key, t }                  ricevuta dell'ultim
 Le regole controllano ogni acquisto: le monete scendono esattamente del prezzo del catalogo, nella stessa scrittura in cui l'oggetto entra nello zaino, al massimo un acquisto ogni 0,8 secondi. Non si può creare un oggetto senza pagarlo, posarlo due volte, posarlo in stanze altrui o cambiarne il tipo.
 
 ⚠️ **Ripubblica `database.rules.json`** su Firebase (Realtime Database → Regole) per attivare Shop e arredamento.
+
+
+## Azioni, bar, smartphone
+
+- **Ruota azioni**: tocca il tuo personaggio → Balla, Saluta, Sorridi, Cuore, Arrabbiato (le vedono tutti nella stanza). Se hai un drink in mano puoi buttarlo.
+- **Bar della Hall**: l'oggetto speciale *Bancone con barista* ha un barista bot. Tocca il barista, scegli da bere: il personaggio va al bancone, il barista glielo passa e lui beve ogni tanto. Toccando un altro giocatore puoi **passargli il drink**.
+- **Smartphone** (📱 nella barra):
+  - *Rubrica*: richieste di amicizia (accetta/rifiuta), aggiungi per nome, lista amici.
+  - *Fotocamera* e *Foto*: scatti quello che vedi nella stanza; massimo 30 foto.
+  - *Pixbook*: il social dell'hotel. Ci si iscrive con una bio, si pubblicano le foto con una didascalia, mi piace, profilo. Un post ogni 20 secondi; lo staff può cancellare qualsiasi post.
+  - *PixChat*: messaggi tra amici, anche da stanze diverse, con avviso di messaggio non letto.
+- **Speciali Hall** (solo staff, nello Shop): bancone con barista, scaffale bottiglie, fontana animata, pianoforte (si suona), reception, divano di velluto, lampione, paletti con cordone, candelabro, tappeto della Hall. Gratis per lo staff, non acquistabili dagli utenti.
+
+### Dati nuovi nel database
+
+```
+act/{stanza}/{uid}     azione in corso e drink in mano
+gift/{stanza}/{uid}    drink passato da un altro giocatore
+friends/{a}/{b}        amicizia (salvata per entrambi)
+freq/{a}/{b}           richiesta di amicizia da b ad a
+dm/{a_b}/{id}          messaggi PixChat (leggono solo i due amici)
+dmidx/{a}/{b}          ultimo messaggio e "non letto"
+photos/{uid}/{id}      foto del telefono (private)
+social/{uid}           iscrizione a Pixbook
+posts/{id}, likes/{id}/{uid}
+```
