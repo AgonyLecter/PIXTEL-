@@ -70,11 +70,11 @@ pre{background:#0d0b20;border:2px solid var(--line);padding:6px;white-space:pre-
 <div id="login">
   <div class="box px">
     <div class="logo">FURIO</div>
-    <div class="mut" style="text-align:center">Area riservata allo staff</div>
+    <div id="lSub" class="mut" style="text-align:center">Area riservata allo staff</div>
     <input id="lEmail" class="f" type="email" placeholder="Email">
     <input id="lPass" class="f" type="password" placeholder="Password">
     <button id="lGo" class="btn cyan">Accedi</button>
-    <button id="lNew" class="btn">Non hai un account? Crealo</button>
+    <button id="lNew" class="btn gold hidden">👑 Registrati come Creatore</button>
     <div id="lErr" class="err"></div>
   </div>
 </div>
@@ -412,20 +412,32 @@ $('lGo').onclick = async () => {
   try { await signInWithEmailAndPassword(auth, $('lEmail').value.trim(), $('lPass').value); }
   catch(e){ $('lErr').textContent = authErr(e); }
 };
+// Registrazione su Furio: possibile UNA sola volta, finché non esiste il Creatore
+async function checkOwner(){
+  const s = await get(ref(db,'staff/owner')).catch(() => null);
+  const free = !!s && !s.exists();
+  $('lNew').classList.toggle('hidden', !free);
+  $('lGo').classList.toggle('hidden', free);
+  $('lSub').textContent = !s ? 'Pubblica le regole del database su Firebase.' : free ? 'Nessun Creatore: registrati, il primo account diventa amministratore.' : 'Area riservata allo staff';
+  return free;
+}
+checkOwner();
 $('lNew').onclick = async () => {
   $('lErr').textContent = '';
+  if (!await checkOwner()){ $('lErr').textContent = 'Il Creatore esiste già: la registrazione è chiusa.'; return; }
+  A.claiming = true;
   try { await createUserWithEmailAndPassword(auth, $('lEmail').value.trim(), $('lPass').value); }
-  catch(e){ $('lErr').textContent = authErr(e); }
+  catch(e){ A.claiming = false; $('lErr').textContent = authErr(e); }
 };
 function authErr(e){
   return ({
-    'auth/invalid-credential':'Email o password errate, oppure l\'account non esiste: premi "Crealo".',
-    'auth/user-not-found':'Account inesistente: premi "Crealo".',
+    'auth/invalid-credential':'Email o password errate.',
+    'auth/user-not-found':'Account inesistente.',
     'auth/wrong-password':'Password errata.',
     'auth/invalid-email':'Email non valida.',
     'auth/missing-password':'Scrivi la password.',
     'auth/weak-password':'Password troppo corta (minimo 6 caratteri).',
-    'auth/email-already-in-use':'Questa email ha già un account: premi "Accedi".',
+    'auth/email-already-in-use':'Questa email ha già un account: usa un\'altra email.',
     'auth/too-many-requests':'Troppi tentativi, riprova tra qualche minuto.',
     'auth/operation-not-allowed':'Su Firebase non è attivo il login con email: Authentication → Sign-in method → Email/Password → Attiva.',
     'auth/unauthorized-domain':'Questo sito non è autorizzato: Authentication → Settings → Authorized domains → aggiungi il dominio.',
@@ -437,11 +449,13 @@ $('out').onclick = () => signOut(auth);
 
 onAuthStateChanged(auth, async user => {
   A.subs.forEach(u => u()); A.subs = [];
-  if (!user){ $('app').classList.add('hidden'); $('login').classList.remove('hidden'); return; }
-  // Il primo che entra in Furio diventa il Creatore
+  if (!user){ $('app').classList.add('hidden'); $('login').classList.remove('hidden'); checkOwner(); return; }
+  // Solo l'account appena registrato su Furio diventa il Creatore
+  const claiming = A.claiming; A.claiming = false;
   const own = await get(ref(db,'staff/owner')).catch(() => null);
   if (!own){ $('lErr').textContent = 'Il database rifiuta la lettura: pubblica le regole di database.rules.json su Firebase.'; await signOut(auth); return; }
-  if (own && !own.exists()){
+  if (!own.exists() && !claiming){ $('lErr').textContent = 'Nessun Creatore ancora: registrati come Creatore.'; await signOut(auth); checkOwner(); return; }
+  if (!own.exists()){
     try{
       await update(ref(db), { 'staff/owner': user.uid, ['admins/'+user.uid]: true });
       toast('👑 Sei il Creatore di PIXTEL!');

@@ -12,11 +12,10 @@ I badge (CREATORE / ADMIN / HELPER / VIP) si vedono nel gioco: nella scheda del 
 
 ## Il primo accesso diventa Creatore
 
-Il **primo account che fa login su `furio.html`** (quando nel database non esiste ancora `staff/owner`) diventa subito **Creatore** e Admin. Da quel momento nessun altro può prendere quel posto.
+Il **primo account registrato su `furio.html`** diventa subito **Creatore** e Admin. Dopo, il pulsante di registrazione sparisce e Furio mostra solo "Accedi".
 
 ⚠️ Fai il primo login su Furio **subito dopo aver pubblicato le regole qui sotto**: finché `staff/owner` è vuoto, chiunque abbia un account potrebbe arrivare prima di te.
 
-L'account va creato prima dal gioco (`index.html`) come un qualsiasi giocatore, poi si entra su Furio con la stessa email e password.
 
 ## Dati nel database
 
