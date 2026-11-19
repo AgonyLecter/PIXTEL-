@@ -49,6 +49,17 @@ h2{font-family:'Silkscreen',monospace;font-size:18px;color:var(--acc2);margin-bo
 pre{background:#0d0b20;border:2px solid var(--line);padding:6px;white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:17px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .row input{flex:1;min-width:120px}
+.r-creator{background:var(--bad);color:#1a0006}
+.r-admin{background:var(--acc);color:#1a0010}
+.r-vip{background:var(--gold);color:#1a1400}
+.r-helper{background:var(--ok);color:#001a08}
+.r-user{background:var(--panel2);color:var(--mut);border-color:var(--line)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chips .btn.on{background:var(--acc2);color:#00181a;border-color:#a8fbff}
+.urow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px}
+.urow .nm{font-size:22px;min-width:120px}
+.urow select.f{width:auto;padding:2px 6px}
+.new{color:var(--ok);font-family:'Silkscreen',monospace;font-size:10px}
 #toast{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;z-index:9}
 #toast div{background:var(--panel);border:3px solid var(--acc2);padding:6px 12px;box-shadow:4px 4px 0 #07051a}
 @media (max-width:720px){#app{flex-direction:column}#side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap}#side .logo{width:100%}#side .btn{width:auto}}
@@ -71,12 +82,15 @@ pre{background:#0d0b20;border:2px solid var(--line);padding:6px;white-space:pre-
   <nav id="side">
     <div class="logo">FURIO</div>
     <button class="btn on" data-v="dash">📊 Panoramica</button>
+    <button class="btn" data-v="users">🧑‍🤝‍🧑 Iscritti <span id="bNew" class="badge hidden"></span></button>
+    <button class="btn" data-v="staff">⭐ Staff &amp; ruoli</button>
     <button class="btn" data-v="reports">🚩 Segnalazioni <span id="bRep" class="badge hidden"></span></button>
     <button class="btn" data-v="traps">🪤 Trappole <span id="bTrap" class="badge hidden"></span></button>
     <button class="btn" data-v="bans">⛔ Ban</button>
     <button class="btn" data-v="players">👤 Giocatori</button>
     <button class="btn" data-v="rooms">🏨 Stanze</button>
     <button class="btn" data-v="audit">📜 Registro</button>
+    <div id="me" class="mut" style="margin-top:auto;font-size:17px"></div>
     <button class="btn" id="out">⏻ Esci</button>
   </nav>
   <main id="main"></main>
@@ -107,7 +121,37 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const fmt = t => t ? new Date(t).toLocaleString('it-IT') : '—';
 function toast(m){ const d=document.createElement('div'); d.textContent=m; $('toast').appendChild(d); setTimeout(()=>d.remove(),3000); }
 
-const A = { uid:null, name:'', view:'dash', trapPath:null, reports:[], traps:[], bans:{}, subs:[], names:new Map() };
+const A = { uid:null, name:'', role:'user', view:'dash', trapPath:null, reports:[], traps:[], bans:{}, subs:[], names:new Map(),
+            owner:null, roles:{}, admins:{}, users:{}, seen:null, filter:'all', q:'' };
+
+/* ===== RUOLI =====
+   staff/owner   = uid del Creatore (il primo che entra in Furio)
+   roles/{uid}   = 'admin' | 'helper' | 'vip'   (assente = utente)
+   admins/{uid}  = true per Creatore e Admin (usato dalle regole del database) */
+const ROLES = {
+  creator:{ label:'Creatore', rank:4 },
+  admin:  { label:'Admin',    rank:3 },
+  helper: { label:'Helper',   rank:2 },
+  vip:    { label:'Vip',      rank:1 },
+  user:   { label:'Utente',   rank:0 },
+};
+function roleOf(uid){
+  if (!uid) return 'user';
+  if (uid === A.owner) return 'creator';
+  if (A.admins[uid] || A.roles[uid] === 'admin') return 'admin';
+  return ROLES[A.roles[uid]] && A.roles[uid] !== 'creator' ? A.roles[uid] : 'user';
+}
+const roleTag = r => `<span class="tag r-${r}">${ROLES[r].label.toUpperCase()}</span>`;
+const isAdmin = () => A.role === 'creator' || A.role === 'admin';
+// quali ruoli posso assegnare a quel giocatore (vuoto = non posso toccarlo)
+function assignable(uid){
+  const cur = roleOf(uid);
+  if (uid === A.uid || cur === 'creator') return [];
+  if (A.role === 'creator') return ['admin','helper','vip','user'];
+  if (A.role === 'admin' && cur !== 'admin') return ['helper','vip','user'];
+  return [];
+}
+const VIEWS = { creator:null, admin:null, helper:['dash','users','staff','reports'] }; // null = tutte
 
 async function nameOf(uid){
   if (!uid) return '—';
@@ -171,11 +215,29 @@ async function initHall(){
   });
   toast('Hall aperta!'); render();
 }
-window.F = { ban, unban, pardon, closeReport, addCoins, deleteRoom, purgeChat, initHall };
+async function setRole(uid, role){
+  if (!assignable(uid).includes(role)) { toast('Non puoi assegnare questo ruolo'); render(); return; }
+  const prev = roleOf(uid); if (prev === role) return;
+  const nm = await nameOf(uid);
+  if (role === 'admin' && !confirm(`Rendere ${nm} ADMIN? Potrà bannare, gestire monete, stanze e ruoli.`)) { render(); return; }
+  const up = { [`roles/${uid}`]: role === 'user' ? null : role };
+  if (A.role === 'creator' && (role === 'admin' || prev === 'admin')) up[`admins/${uid}`] = role === 'admin' ? true : null;
+  try{
+    await update(ref(db), { ...up, ...(await audit('role', uid, `${ROLES[prev].label} → ${ROLES[role].label}`)) });
+    toast(`${nm} ora è ${ROLES[role].label}`);
+  }catch(e){ toast('Errore: '+e.message); render(); }
+}
+window.F = { setRole, ban, unban, pardon, closeReport, addCoins, deleteRoom, purgeChat, initHall };
 
 /* ===== VISTE ===== */
 const V = {};
 V.dash = async () => {
+  if (!isAdmin()) {
+    return `<h2>Panoramica</h2><div class="grid">
+      <div class="px stat"><b>${Object.keys(A.users).length}</b>account</div>
+      <div class="px stat"><b>${newToday()}</b>iscritti nelle ultime 24h</div>
+      <div class="px stat"><b>${A.reports.length}</b>segnalazioni aperte</div></div>`;
+  }
   const [ps, rs, us, bs] = await Promise.all([get(ref(db,'presence')), get(ref(db,'rooms')), get(ref(db,'users')), get(ref(db,'bans'))]);
   let online = 0; ps.forEach(r => { online += r.size; });
   const hall = rs.child('lobby').exists();
@@ -189,7 +251,60 @@ V.dash = async () => {
     <div class="px stat"><b>${A.reports.length}</b>segnalazioni aperte</div>
     <div class="px stat"><b>${A.traps.length}</b>trappole scattate</div>
     <div class="px stat"><b>${bs.size}</b>bannati</div>
+    <div class="px stat"><b>${newToday()}</b>iscritti nelle ultime 24h</div>
+    <div class="px stat"><b>${Object.keys(A.users).filter(u => roleOf(u)!=='user').length}</b>staff e vip</div>
   </div>`;
+};
+const DAY = 864e5;
+const newToday = () => Object.values(A.users).filter(u => typeof u.created === 'number' && Date.now() - u.created < DAY).length;
+function roleSelect(uid){
+  const opts = assignable(uid);
+  if (!opts.length) return '';
+  const cur = roleOf(uid);
+  return `<select class="f" onchange="F.setRole('${esc(uid)}', this.value)">
+    ${opts.includes(cur) ? '' : `<option selected disabled>${ROLES[cur].label}</option>`}
+    ${opts.map(r => `<option value="${r}" ${r===cur?'selected':''}>${ROLES[r].label}</option>`).join('')}</select>`;
+}
+function userRow(uid){
+  const u = A.users[uid] || {}; const r = roleOf(uid);
+  const fresh = typeof u.created === 'number' && Date.now() - u.created < DAY;
+  return `<div class="px urow">
+    <b class="nm">${esc(u.name || uid.slice(0,8)+'…')}</b>${roleTag(r)}
+    ${A.bans[uid] ? '<span class="tag t-client_tamper">BANNATO</span>' : ''}
+    ${fresh ? '<span class="new">NUOVO</span>' : ''}
+    <span class="mut">iscritto ${fmt(u.created)}</span>
+    <span style="margin-left:auto" class="row">${roleSelect(uid)}
+    ${isAdmin() && r !== 'creator' && uid !== A.uid && !A.bans[uid] && (A.role==='creator' || r!=='admin') ? `<button class="btn red" onclick="F.ban('${esc(uid)}')">Banna</button>` : ''}</span>
+  </div>`;
+}
+V.users = async () => {
+  A.seen = Date.now(); try{ localStorage.setItem('furioSeen', A.seen); }catch(e){} badges();
+  const all = Object.keys(A.users).sort((a,b) => (A.users[b].created||0) - (A.users[a].created||0));
+  const q = A.q.toLowerCase();
+  const list = all.filter(u => (A.filter==='all' || roleOf(u)===A.filter) && (!q || String(A.users[u].name||'').toLowerCase().includes(q)));
+  const count = r => all.filter(u => roleOf(u)===r).length;
+  return `<h2>Iscritti (${all.length})</h2>
+  <div class="row" style="margin-bottom:10px"><input id="uq" class="f" placeholder="Cerca per nome…" value="${esc(A.q)}"></div>
+  <div class="chips">
+    <button class="btn ${A.filter==='all'?'on':''}" data-f="all">Tutti ${all.length}</button>
+    ${Object.keys(ROLES).map(r => `<button class="btn ${A.filter===r?'on':''}" data-f="${r}">${ROLES[r].label} ${count(r)}</button>`).join('')}
+  </div>
+  <div class="list">${list.slice(0,300).map(userRow).join('') || '<div class="mut">Nessuno.</div>'}</div>
+  ${list.length > 300 ? `<div class="mut">…e altri ${list.length-300}. Usa la ricerca.</div>` : ''}`;
+};
+V.staff = async () => {
+  const group = r => Object.keys(A.users).filter(u => roleOf(u) === r);
+  const desc = {
+    creator:'Il proprietario della pagina. Fa tutto e nomina gli Admin.',
+    admin:'Ban, monete, stanze, registro. Può nominare Helper e Vip.',
+    helper:'Vede iscritti e segnalazioni e può archiviarle.',
+    vip:'Giocatore speciale: badge Vip nel gioco.',
+  };
+  return `<h2>Staff &amp; ruoli</h2>
+  <div class="mut" style="margin-bottom:12px">Per dare un ruolo vai su <b>Iscritti</b> e scegli dal menu accanto al nome.</div>
+  ${['creator','admin','helper','vip'].map(r => { const g = group(r); return `
+    <div style="margin-bottom:14px"><div class="row" style="margin-bottom:6px">${roleTag(r)}<span class="mut">${desc[r]}</span></div>
+    <div class="list">${g.map(userRow).join('') || '<div class="mut">Nessuno.</div>'}</div></div>`; }).join('')}`;
 };
 const TYPE = { user_report:'Segnalazione utente', rule_violation:'Scritture rifiutate', client_tamper:'Manomissione client' };
 V.reports = async () => {
@@ -200,8 +315,8 @@ V.reports = async () => {
       <div><b>${esc(r.byName||await nameOf(r.by))}</b> → <b>${esc(r.targetName || await nameOf(r.target))}</b> <span class="mut">in ${esc(r.room||'—')}</span></div>
       ${r.detail ? `<pre>${esc(r.detail)}</pre>` : ''}
       <div class="acts">
-        ${r.target ? `<button class="btn red" onclick="F.ban('${esc(r.target)}')">Banna segnalato</button>` : ''}
-        ${r.type==='user_report' ? `<button class="btn" onclick="F.ban('${esc(r.by)}','Segnalazioni false')">Banna chi segnala</button>` : ''}
+        ${r.target && isAdmin() ? `<button class="btn red" onclick="F.ban('${esc(r.target)}')">Banna segnalato</button>` : ''}
+        ${r.type==='user_report' && isAdmin() ? `<button class="btn" onclick="F.ban('${esc(r.by)}','Segnalazioni false')">Banna chi segnala</button>` : ''}
         <button class="btn cyan" onclick="F.closeReport('${esc(r.id)}')">Archivia</button>
       </div>
     </div>`));
@@ -260,7 +375,7 @@ async function searchPlayer(){
   const [p, w, r, b, inv] = await Promise.all([get(ref(db,'users/'+uid)), get(ref(db,'wallets/'+uid)), get(ref(db,`players/${uid}/room`)), get(ref(db,'bans/'+uid)), get(ref(db,'inventory/'+uid))]);
   const pr = p.val() || {};
   box.innerHTML = `<div class="px item">
-    <div class="top"><b style="font-size:24px">${esc(pr.name)}</b>${b.exists() ? '<span class="tag t-client_tamper">BANNATO</span>' : ''}</div>
+    <div class="top"><b style="font-size:24px">${esc(pr.name)}</b>${roleTag(roleOf(uid))} ${roleSelect(uid)}${b.exists() ? '<span class="tag t-client_tamper">BANNATO</span>' : ''}</div>
     <div class="mut">UID: ${esc(uid)}</div>
     <div>Motto: ${esc(pr.motto||'—')} · Iscritto: ${fmt(pr.created)} · Ultima stanza: ${esc(r.val()||'—')}</div>
     <div>Monete: <b style="color:var(--gold)">${w.val()?.coins ?? 0}</b> · Oggetti: ${inv.exists() ? inv.size : 0}</div>
@@ -271,14 +386,21 @@ async function searchPlayer(){
 }
 
 async function render(){
+  if (VIEWS[A.role] && !VIEWS[A.role].includes(A.view)) A.view = 'dash';
   document.querySelectorAll('#side [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === A.view));
   const main = $('main');
   try { main.innerHTML = await V[A.view](); }
   catch(e){ main.innerHTML = '<div class="err">Errore: '+esc(e.message)+'</div>'; }
+  if (A.view === 'users'){
+    document.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { A.filter = b.dataset.f; render(); });
+    const i = $('uq'); i.oninput = () => { A.q = i.value; clearTimeout(A.qt); A.qt = setTimeout(() => render().then(() => { const j=$('uq'); j.focus(); j.setSelectionRange(j.value.length,j.value.length); }), 250); };
+  }
   if (A.view === 'players'){ $('pGo').onclick = searchPlayer; $('pq').onkeydown = e => { if (e.key==='Enter') searchPlayer(); }; }
 }
 document.querySelectorAll('#side [data-v]').forEach(b => b.onclick = () => { A.view = b.dataset.v; render(); });
 function badges(){
+  const n = A.seen === null ? 0 : Object.values(A.users).filter(u => typeof u.created === 'number' && u.created > A.seen).length;
+  $('bNew').textContent = n; $('bNew').classList.toggle('hidden', !n || A.view === 'users');
   $('bRep').textContent = A.reports.length; $('bRep').classList.toggle('hidden', !A.reports.length);
   $('bTrap').textContent = A.traps.length; $('bTrap').classList.toggle('hidden', !A.traps.length);
 }
@@ -295,11 +417,25 @@ $('out').onclick = () => signOut(auth);
 onAuthStateChanged(auth, async user => {
   A.subs.forEach(u => u()); A.subs = [];
   if (!user){ $('app').classList.add('hidden'); $('login').classList.remove('hidden'); return; }
-  const adm = await get(ref(db,'admins/'+user.uid)).catch(() => null);
-  if (!adm || !adm.exists()){ $('lErr').textContent = 'Questo account non fa parte dello staff.'; await signOut(auth); return; }
+  // Il primo che entra in Furio diventa il Creatore
+  const own = await get(ref(db,'staff/owner')).catch(() => null);
+  if (own && !own.exists()){
+    try{
+      await update(ref(db), { 'staff/owner': user.uid, ['admins/'+user.uid]: true });
+      toast('👑 Sei il Creatore di PIXTEL!');
+    }catch(e){ $('lErr').textContent = 'Impossibile diventare Creatore: aggiorna le regole del database (vedi RUOLI.md).'; await signOut(auth); return; }
+  }
+  const [ow, adm, rl] = await Promise.all([get(ref(db,'staff/owner')), get(ref(db,'admins/'+user.uid)).catch(() => null), get(ref(db,'roles/'+user.uid)).catch(() => null)]);
+  A.owner = ow.exists() ? ow.val() : null;
+  A.role = user.uid === A.owner ? 'creator' : (adm && adm.exists()) ? 'admin' : (rl && rl.val() === 'helper') ? 'helper' : 'user';
+  if (A.role === 'user'){ $('lErr').textContent = 'Questo account non fa parte dello staff.'; await signOut(auth); return; }
   A.uid = user.uid; A.name = await nameOf(user.uid);
-  const cfg = await get(ref(db,'adminConfig/trap'));
-  A.trapPath = cfg.exists() && /^[A-Za-z0-9_-]+$/.test(cfg.val()) ? cfg.val() : null;
+  try{ A.seen = Number(localStorage.getItem('furioSeen')) || Date.now(); }catch(e){ A.seen = Date.now(); }
+  $('me').innerHTML = esc(A.name)+'<br>'+roleTag(A.role);
+  document.querySelectorAll('#side [data-v]').forEach(b => b.classList.toggle('hidden', !!VIEWS[A.role] && !VIEWS[A.role].includes(b.dataset.v)));
+  if (!VIEWS[A.role]?.includes(A.view) && VIEWS[A.role]) A.view = 'dash';
+  const cfg = isAdmin() ? await get(ref(db,'adminConfig/trap')).catch(() => null) : null;
+  A.trapPath = cfg && cfg.exists() && /^[A-Za-z0-9_-]+$/.test(cfg.val()) ? cfg.val() : null;
   $('login').classList.add('hidden'); $('app').classList.remove('hidden');
   let first = true;
   A.subs.push(onValue(query(ref(db,'reports'), limitToLast(200)), s => {
@@ -312,7 +448,22 @@ onAuthStateChanged(auth, async user => {
     badges(); if (!first && A.traps.length > before) toast('🪤 Trappola scattata!');
     if (!first && (A.view==='traps' || A.view==='dash')) render();
   }));
-  A.subs.push(onValue(ref(db,'bans'), s => { A.bans = s.val() || {}; if (!first && A.view==='bans') render(); }));
+  const live = v => !first && v.includes(A.view);
+  if (isAdmin()) A.subs.push(onValue(ref(db,'bans'), s => { A.bans = s.val() || {}; if (live(['bans','users','staff'])) render(); }));
+  A.subs.push(onValue(ref(db,'staff/owner'), s => { A.owner = s.val(); }));
+  A.subs.push(onValue(ref(db,'roles'), s => { A.roles = s.val() || {}; if (live(['users','staff','dash'])) render(); }));
+  A.subs.push(onValue(ref(db,'admins'), s => {
+    A.admins = s.val() || {};
+    // vecchi admin senza voce in roles: allinea così il badge si vede anche nel gioco
+    if (A.role === 'creator') for (const u in A.admins) if (u !== A.owner && A.roles[u] !== 'admin') set(ref(db,'roles/'+u), 'admin').catch(()=>{});
+    if (live(['users','staff'])) render();
+  }, () => {}));
+  A.subs.push(onValue(ref(db,'users'), s => {
+    const prev = A.users; A.users = s.val() || {};
+    if (!first) for (const u in A.users) if (!prev[u]) toast('🆕 Nuovo iscritto: '+(A.users[u].name||'?'));
+    badges();
+    if (live(['users','staff','dash']) && Object.keys(prev).length !== Object.keys(A.users).length) render();
+  }));
   setTimeout(() => { first = false; render(); }, 400);
 });
 </script>

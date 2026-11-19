@@ -88,6 +88,9 @@ input.f:focus,textarea.f:focus{border-color:var(--acc2)}
 .bub b{font-weight:400;margin-right:4px}
 .bub:after{content:'';position:absolute;left:var(--tail,50%);bottom:-7px;width:8px;height:6px;background:#fff;border:2px solid #07051a;border-top:none;transform:translateX(-50%)}
 
+.rtag{display:inline-block;font-family:'Silkscreen',monospace;font-size:10px;padding:1px 5px;border:2px solid #07051a;margin-right:4px;vertical-align:middle}
+.r-creator{background:var(--bad);color:#1a0006}.r-admin{background:var(--acc);color:#1a0010}
+.r-helper{background:var(--ok);color:#001a08}.r-vip{background:var(--gold);color:#1a1400}
 #tip{position:fixed;z-index:6;pointer-events:none;background:rgba(7,5,26,.9);border:2px solid var(--acc2);padding:0 6px;font-family:'Silkscreen',monospace;font-size:11px;transform:translate(-50%,-100%)}
 #toast{position:fixed;z-index:60;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
 #toast div{background:var(--panel);border:3px solid var(--acc);padding:6px 12px;box-shadow:4px 4px 0 #07051a;animation:tin .2s steps(3)}
@@ -200,6 +203,7 @@ input.f:focus,textarea.f:focus{border-color:var(--acc2)}
 <div id="card" class="panel px hidden">
   <div class="hd"><span id="cardName">—</span><span class="x" data-close="card">✕</span></div>
   <div class="bd">
+    <div id="cardRole"></div>
     <div id="cardMotto" class="mut"></div>
     <div id="cardRep">
       <textarea id="repTxt" class="f" rows="2" maxlength="250" placeholder="Motivo della segnalazione (opzionale)"></textarea>
@@ -245,6 +249,11 @@ const FLOORS = ['#2a2350','#3d2a5c','#1f3a4d','#4a2a2a','#2f4a2f','#4b4b5c','#5c
 const WALLS  = ['#3b2d7a','#5a2a6e','#1f5a6e','#6e2a3b','#2f6e4a','#6e6e80','#7a5a2a','#24243a'];
 
 /* ================= STATO ================= */
+/* ruoli (gestiti da Furio): staff/owner = Creatore, roles/{uid} = admin|helper|vip */
+const RL = { owner:null, roles:{} };
+const RLABEL = { creator:'CREATORE', admin:'ADMIN', helper:'HELPER', vip:'VIP' };
+function roleOf(uid){ if (uid && uid === RL.owner) return 'creator'; const r = RL.roles[uid]; return RLABEL[r] && r !== 'creator' ? r : null; }
+function roleEl(uid){ const r = roleOf(uid); if (!r) return null; const e = document.createElement('span'); e.className = 'rtag r-'+r; e.textContent = RLABEL[r]; return e; }
 const S = {
   uid:null, me:null, coins:0,
   roomId:null, room:null, layer:null,
@@ -520,7 +529,7 @@ function updateTip(){
   if (!S.mouse || S.drag){ tip.classList.add('hidden'); return; }
   const h = avatarHit(S.mouse.x/PS, S.mouse.y/PS);
   if (!h){ tip.classList.add('hidden'); return; }
-  tip.textContent = h.prof.name;
+  tip.textContent = h.prof.name; const rt = roleEl(h.uid); if (rt) tip.prepend(rt);
   tip.style.left = (h.a.fx*PS)+'px'; tip.style.top = ((h.a.fy-29)*PS)+'px';
   tip.classList.remove('hidden');
 }
@@ -692,6 +701,7 @@ function showBubble(m){
   const layer = $('bubbles');
   const el = document.createElement('div'); el.className = 'bub';
   const b = document.createElement('b'); b.textContent = m.name + ':'; b.style.color = nameColor(m.name);
+  const rt = roleEl(m.uid); if (rt) el.appendChild(rt);
   el.appendChild(b); el.appendChild(document.createTextNode(m.text));
   el.style.left = '0px'; el.style.top = '-200px';
   layer.appendChild(el);
@@ -723,6 +733,7 @@ function openCard(uid){
   const prof = S.profiles.get(uid); if (!prof) return;
   closePanels(); S.cardUid = uid;
   $('cardName').textContent = prof.name;
+  const cr = $('cardRole'); cr.textContent = ''; const rt = roleEl(uid); if (rt) cr.appendChild(rt);
   $('cardMotto').textContent = prof.motto ? '“'+prof.motto+'”' : 'Nessun motto';
   $('cardRep').classList.toggle('hidden', uid === S.uid);
   $('repTxt').value = '';
@@ -878,6 +889,8 @@ async function startSession(profile){
   if (!w.exists()) await guardedWrite(() => set(ref(db,'wallets/'+S.uid), { coins:100, created:serverTimestamp() }), 'wallet');
   S.sess.push(onValue(ref(db,'wallets/'+S.uid), s => { _wallet.v = s.val()?.coins ?? 0; $('coins').textContent = _wallet.v.toLocaleString('it-IT'); }));
   S.sess.push(onValue(ref(db,'users/'+S.uid), s => { if (s.exists()){ S.me = s.val(); S.profiles.set(S.uid, S.me); } }));
+  S.sess.push(onValue(ref(db,'staff/owner'), s => { RL.owner = s.val(); }, () => {}));
+  S.sess.push(onValue(ref(db,'roles'), s => { RL.roles = s.val() || {}; }, () => {}));
   S.sess.push(onValue(ref(db,'.info/connected'), s => $('net').classList.toggle('off', s.val() !== true)));
   ['auth','nick','notice','banned'].forEach(hide);
   show('hud'); show('bar');
