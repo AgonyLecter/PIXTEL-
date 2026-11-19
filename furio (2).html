@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>FURIO — Staff</title>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0a1a;--panel:#17142e;--panel2:#221d44;--line:#3a3270;--txt:#ece9ff;--mut:#8b84c9;--acc:#ff3fa4;--acc2:#3ff0ff;--gold:#ffd23f;--ok:#4dff8a;--bad:#ff4d6a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'VT323',monospace;font-size:20px;min-height:100vh}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+.hidden{display:none!important}
+.px{background:var(--panel);border:3px solid var(--line);box-shadow:0 0 0 3px #07051a,6px 6px 0 #07051a}
+.btn{background:var(--panel2);border:3px solid var(--line);padding:4px 10px;cursor:pointer;font-family:'Silkscreen',monospace;font-size:12px;color:var(--txt);box-shadow:3px 3px 0 #07051a}
+.btn:hover{border-color:var(--acc2)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #07051a}
+.btn.red{background:var(--bad);color:#1a0006;border-color:#ff9fb0}
+.btn.cyan{background:var(--acc2);color:#00181a;border-color:#a8fbff}
+.btn.gold{background:var(--gold);color:#1a1400;border-color:#fff1a8}
+input.f,select.f,textarea.f{background:#0d0b20;border:3px solid var(--line);padding:6px 8px;outline:none;width:100%}
+input.f:focus{border-color:var(--acc2)}
+.logo{font-family:'Silkscreen',monospace;font-weight:700;font-size:44px;color:var(--bad);text-shadow:3px 3px 0 #5a0018,0 0 18px rgba(255,77,106,.5);text-align:center}
+.mut{color:var(--mut)}
+.err{color:var(--bad);min-height:22px}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+#login .box{width:min(360px,100%);padding:20px;display:flex;flex-direction:column;gap:10px}
+#app{display:flex;min-height:100vh}
+#side{width:200px;flex:none;background:var(--panel);border-right:3px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+#side .logo{font-size:28px;margin-bottom:8px}
+#side .btn{text-align:left;width:100%}
+#side .btn.on{background:var(--acc);color:#1a0010;border-color:#ff8fcb}
+.badge{float:right;background:var(--bad);color:#1a0006;padding:0 5px}
+#main{flex:1;padding:18px;min-width:0}
+h2{font-family:'Silkscreen',monospace;font-size:18px;color:var(--acc2);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.stat{padding:12px}
+.stat b{display:block;font-family:'Silkscreen',monospace;font-size:28px;color:var(--gold)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{padding:10px;display:flex;flex-direction:column;gap:6px}
+.item .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-family:'Silkscreen',monospace;font-size:10px;padding:2px 6px;border:2px solid #07051a}
+.t-user_report{background:var(--gold);color:#1a1400}
+.t-rule_violation{background:var(--acc);color:#1a0010}
+.t-client_tamper{background:var(--bad);color:#1a0006}
+.t-trap{background:#ff6a3d;color:#1a0600}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+pre{background:#0d0b20;border:2px solid var(--line);padding:6px;white-space:pre-wrap;word-break:break-all;font-family:inherit;font-size:17px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row input{flex:1;min-width:120px}
+#toast{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;z-index:9}
+#toast div{background:var(--panel);border:3px solid var(--acc2);padding:6px 12px;box-shadow:4px 4px 0 #07051a}
+@media (max-width:720px){#app{flex-direction:column}#side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap}#side .logo{width:100%}#side .btn{width:auto}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box px">
+    <div class="logo">FURIO</div>
+    <div class="mut" style="text-align:center">Area riservata allo staff</div>
+    <input id="lEmail" class="f" type="email" placeholder="Email">
+    <input id="lPass" class="f" type="password" placeholder="Password">
+    <button id="lGo" class="btn cyan">Accedi</button>
+    <div id="lErr" class="err"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <nav id="side">
+    <div class="logo">FURIO</div>
+    <button class="btn on" data-v="dash">📊 Panoramica</button>
+    <button class="btn" data-v="reports">🚩 Segnalazioni <span id="bRep" class="badge hidden"></span></button>
+    <button class="btn" data-v="traps">🪤 Trappole <span id="bTrap" class="badge hidden"></span></button>
+    <button class="btn" data-v="bans">⛔ Ban</button>
+    <button class="btn" data-v="players">👤 Giocatori</button>
+    <button class="btn" data-v="rooms">🏨 Stanze</button>
+    <button class="btn" data-v="audit">📜 Registro</button>
+    <button class="btn" id="out">⏻ Esci</button>
+  </nav>
+  <main id="main"></main>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, set, update, push, onValue, query, limitToLast, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXkaxi5ZWr3pzr3C_0BpwCrL_7y0tC_t8",
+  authDomain: "easygo-f5046.firebaseapp.com",
+  databaseURL: "https://easygo-f5046-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "easygo-f5046",
+  storageBucket: "easygo-f5046.firebasestorage.app",
+  messagingSenderId: "509243295842",
+  appId: "1:509243295842:web:3d3c7f60166d497480293b",
+  measurementId: "G-WFMBB2JEDD"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = t => t ? new Date(t).toLocaleString('it-IT') : '—';
+function toast(m){ const d=document.createElement('div'); d.textContent=m; $('toast').appendChild(d); setTimeout(()=>d.remove(),3000); }
+
+const A = { uid:null, name:'', view:'dash', trapPath:null, reports:[], traps:[], bans:{}, subs:[], names:new Map() };
+
+async function nameOf(uid){
+  if (!uid) return '—';
+  if (A.names.has(uid)) return A.names.get(uid);
+  const s = await get(ref(db,`users/${uid}/name`));
+  const n = s.exists() ? s.val() : uid.slice(0,8)+'…';
+  A.names.set(uid, n); return n;
+}
+async function audit(action, target, detail=''){
+  const k = push(ref(db,'audit')).key;
+  return { [`audit/${k}`]: { by:A.uid, byName:A.name, action, target:target||'', detail:String(detail).slice(0,300), t:serverTimestamp() } };
+}
+
+/* ===== AZIONI ===== */
+async function ban(uid, reason){
+  if (!uid) return;
+  if (!reason) reason = prompt('Motivo del ban?', 'Violazione del regolamento');
+  if (reason === null) return;
+  try{
+    await update(ref(db), { [`bans/${uid}`]: { reason, by:A.uid, byName:A.name, t:serverTimestamp() }, ...(await audit('ban', uid, reason)) });
+    const r = await get(ref(db,`players/${uid}/room`));
+    if (r.exists()) await set(ref(db,`presence/${r.val()}/${uid}`), null).catch(()=>{});
+    toast('Bannato: '+await nameOf(uid)); render();
+  }catch(e){ toast('Errore: '+e.message); }
+}
+async function unban(uid){
+  if (!confirm('Rimuovere il ban?')) return;
+  await update(ref(db), { [`bans/${uid}`]: null, ...(await audit('unban', uid)) });
+  toast('Ban rimosso'); render();
+}
+async function pardon(uid){
+  if (!A.trapPath || !confirm('Rimuovere il segnale e sbloccare l\'account?')) return;
+  await update(ref(db), { [`${A.trapPath}/${uid}`]: null, ...(await audit('pardon', uid)) });
+  toast('Account sbloccato');
+}
+async function closeReport(id){
+  await update(ref(db), { [`reports/${id}`]: null, ...(await audit('report_close', id)) });
+}
+async function addCoins(uid, n){
+  n = Math.trunc(Number(n)); if (!n) return;
+  const res = await runTransaction(ref(db,`wallets/${uid}/coins`), c => Math.max(0, (c||0) + n));
+  await update(ref(db), await audit('coins', uid, (n>0?'+':'')+n));
+  toast('Saldo: '+res.snapshot.val()); render();
+}
+async function deleteRoom(id){
+  if (!confirm('Eliminare la stanza '+id+'? Tutti i presenti verranno espulsi.')) return;
+  await update(ref(db), { [`rooms/${id}`]:null, [`presence/${id}`]:null, [`chat/${id}`]:null, ...(await audit('room_delete', id)) });
+  toast('Stanza eliminata'); render();
+}
+async function purgeChat(id){
+  await update(ref(db), { [`chat/${id}`]:null, ...(await audit('chat_purge', id)) });
+  toast('Chat svuotata');
+}
+async function initHall(){
+  const s = await get(ref(db,'rooms/lobby'));
+  if (s.exists()){ toast('La Hall esiste già'); return; }
+  await update(ref(db), {
+    'rooms/lobby': { name:'Hall PIXTEL', desc:'La hall pubblica dove arrivano tutti', owner:A.uid, ownerName:'PIXTEL',
+                     w:16, h:16, door:{x:0,y:6}, floor:'#2a2350', wall:'#3b2d7a', created:serverTimestamp() },
+    ...(await audit('hall_init','lobby'))
+  });
+  toast('Hall aperta!'); render();
+}
+window.F = { ban, unban, pardon, closeReport, addCoins, deleteRoom, purgeChat, initHall };
+
+/* ===== VISTE ===== */
+const V = {};
+V.dash = async () => {
+  const [ps, rs, us, bs] = await Promise.all([get(ref(db,'presence')), get(ref(db,'rooms')), get(ref(db,'users')), get(ref(db,'bans'))]);
+  let online = 0; ps.forEach(r => { online += r.size; });
+  const hall = rs.child('lobby').exists();
+  return `<h2>Panoramica</h2>
+  ${hall ? '' : `<div class="px item" style="margin-bottom:12px;border-color:var(--gold)"><b>La Hall non esiste ancora.</b><span class="mut">I giocatori non possono entrare finché non la apri.</span><div><button class="btn gold" onclick="F.initHall()">Apri la Hall</button></div></div>`}
+  ${A.trapPath ? '' : `<div class="px item" style="margin-bottom:12px;border-color:var(--bad)"><b>Trappole non configurate.</b><span class="mut">Crea nel database il nodo <code>adminConfig/trap</code> con il valore indicato nel README.</span></div>`}
+  <div class="grid">
+    <div class="px stat"><b>${online}</b>online ora</div>
+    <div class="px stat"><b>${us.size}</b>account</div>
+    <div class="px stat"><b>${rs.size}</b>stanze</div>
+    <div class="px stat"><b>${A.reports.length}</b>segnalazioni aperte</div>
+    <div class="px stat"><b>${A.traps.length}</b>trappole scattate</div>
+    <div class="px stat"><b>${bs.size}</b>bannati</div>
+  </div>`;
+};
+const TYPE = { user_report:'Segnalazione utente', rule_violation:'Scritture rifiutate', client_tamper:'Manomissione client' };
+V.reports = async () => {
+  if (!A.reports.length) return '<h2>Segnalazioni</h2><div class="mut">Nessuna segnalazione aperta. Tutto tranquillo.</div>';
+  const items = await Promise.all(A.reports.slice().reverse().map(async r => `
+    <div class="px item">
+      <div class="top"><span class="tag t-${esc(r.type)}">${esc(TYPE[r.type]||r.type)}</span><span class="mut">${fmt(r.t)}</span>${A.bans[r.target] ? '<span class="tag t-client_tamper">GIÀ BANNATO</span>' : ''}</div>
+      <div><b>${esc(r.byName||await nameOf(r.by))}</b> → <b>${esc(r.targetName || await nameOf(r.target))}</b> <span class="mut">in ${esc(r.room||'—')}</span></div>
+      ${r.detail ? `<pre>${esc(r.detail)}</pre>` : ''}
+      <div class="acts">
+        ${r.target ? `<button class="btn red" onclick="F.ban('${esc(r.target)}')">Banna segnalato</button>` : ''}
+        ${r.type==='user_report' ? `<button class="btn" onclick="F.ban('${esc(r.by)}','Segnalazioni false')">Banna chi segnala</button>` : ''}
+        <button class="btn cyan" onclick="F.closeReport('${esc(r.id)}')">Archivia</button>
+      </div>
+    </div>`));
+  return '<h2>Segnalazioni</h2><div class="list">'+items.join('')+'</div>';
+};
+V.traps = async () => {
+  if (!A.trapPath) return '<h2>Trappole</h2><div class="mut">Configura <code>adminConfig/trap</code> (vedi README).</div>';
+  if (!A.traps.length) return '<h2>Trappole</h2><div class="mut">Nessuno ha provato a forzare l\'economia. Per ora.</div>';
+  const items = await Promise.all(A.traps.map(async t => `
+    <div class="px item">
+      <div class="top"><span class="tag t-trap">TENTATIVO MONETE</span><b>${esc(await nameOf(t.uid))}</b>${A.bans[t.uid] ? '<span class="tag t-client_tamper">BANNATO</span>' : '<span class="mut">account congelato</span>'}</div>
+      <pre>${esc(JSON.stringify(t.data, null, 1)).slice(0,600)}</pre>
+      <div class="acts">
+        ${A.bans[t.uid] ? '' : `<button class="btn red" onclick="F.ban('${esc(t.uid)}','Tentativo di manomissione dell\\'economia')">Banna</button>`}
+        <button class="btn" onclick="F.pardon('${esc(t.uid)}')">Perdona e sblocca</button>
+      </div>
+    </div>`));
+  return '<h2>Trappole</h2><div class="mut" style="margin-bottom:10px">Chi finisce qui ha scritto in un percorso che il gioco non usa mai: l\'account resta congelato finché non decidi.</div><div class="list">'+items.join('')+'</div>';
+};
+V.bans = async () => {
+  const ids = Object.keys(A.bans);
+  if (!ids.length) return '<h2>Ban</h2><div class="mut">Nessun bannato.</div>';
+  const items = await Promise.all(ids.map(async uid => { const b = A.bans[uid]; return `
+    <div class="px item"><div class="top"><b>${esc(await nameOf(uid))}</b><span class="mut">${fmt(b.t)} da ${esc(b.byName||'?')}</span></div>
+    <div>${esc(b.reason||'')}</div><div class="acts"><button class="btn cyan" onclick="F.unban('${esc(uid)}')">Rimuovi ban</button></div></div>`; }));
+  return '<h2>Ban</h2><div class="list">'+items.join('')+'</div>';
+};
+V.players = async () => `<h2>Giocatori</h2>
+  <div class="row" style="margin-bottom:12px"><input id="pq" class="f" placeholder="Nome esatto del giocatore"><button class="btn cyan" id="pGo">Cerca</button></div>
+  <div id="pRes"></div>`;
+V.rooms = async () => {
+  const [rs, ps] = await Promise.all([get(ref(db,'rooms')), get(ref(db,'presence'))]);
+  const rows = []; rs.forEach(r => { rows.push({id:r.key, ...r.val(), n: ps.child(r.key).size}); });
+  rows.sort((a,b) => b.n - a.n);
+  return `<h2>Stanze</h2>
+  ${rs.child('lobby').exists() ? '' : '<div style="margin-bottom:12px"><button class="btn gold" onclick="F.initHall()">Apri la Hall</button></div>'}
+  <div class="list">${rows.map(r => `
+    <div class="px item"><div class="top"><b>${esc(r.name)}</b><span class="mut">${esc(r.id)} · di ${esc(r.ownerName)} · ${r.w}×${r.h} · ● ${r.n}</span></div>
+    <div class="acts"><button class="btn" onclick="F.purgeChat('${esc(r.id)}')">Svuota chat</button>
+    ${r.id==='lobby' ? '' : `<button class="btn red" onclick="F.deleteRoom('${esc(r.id)}')">Elimina</button>`}</div></div>`).join('')}</div>`;
+};
+V.audit = async () => {
+  const s = await get(query(ref(db,'audit'), limitToLast(100)));
+  const rows = []; s.forEach(c => { rows.unshift(c.val()); });
+  if (!rows.length) return '<h2>Registro</h2><div class="mut">Nessuna azione registrata.</div>';
+  const items = await Promise.all(rows.map(async a => `<div class="px item"><div class="top"><b>${esc(a.byName)}</b><span class="tag t-user_report">${esc(a.action)}</span><span>${esc(a.target ? (await nameOf(a.target)) : '')}</span><span class="mut">${fmt(a.t)}</span></div>${a.detail ? `<div class="mut">${esc(a.detail)}</div>` : ''}</div>`));
+  return '<h2>Registro</h2><div class="list">'+items.join('')+'</div>';
+};
+
+async function searchPlayer(){
+  const q = $('pq').value.trim().toLowerCase(); const box = $('pRes');
+  if (!q) return;
+  const u = await get(ref(db,'usernames/'+q));
+  if (!u.exists()){ box.innerHTML = '<div class="mut">Nessun giocatore con questo nome.</div>'; return; }
+  const uid = u.val();
+  const [p, w, r, b, inv] = await Promise.all([get(ref(db,'users/'+uid)), get(ref(db,'wallets/'+uid)), get(ref(db,`players/${uid}/room`)), get(ref(db,'bans/'+uid)), get(ref(db,'inventory/'+uid))]);
+  const pr = p.val() || {};
+  box.innerHTML = `<div class="px item">
+    <div class="top"><b style="font-size:24px">${esc(pr.name)}</b>${b.exists() ? '<span class="tag t-client_tamper">BANNATO</span>' : ''}</div>
+    <div class="mut">UID: ${esc(uid)}</div>
+    <div>Motto: ${esc(pr.motto||'—')} · Iscritto: ${fmt(pr.created)} · Ultima stanza: ${esc(r.val()||'—')}</div>
+    <div>Monete: <b style="color:var(--gold)">${w.val()?.coins ?? 0}</b> · Oggetti: ${inv.exists() ? inv.size : 0}</div>
+    <div class="row"><input id="cAmt" class="f" type="number" placeholder="+100 o -50"><button class="btn gold" id="cGo">Applica monete</button></div>
+    <div class="acts">${b.exists() ? `<button class="btn cyan" onclick="F.unban('${esc(uid)}')">Rimuovi ban</button>` : `<button class="btn red" onclick="F.ban('${esc(uid)}')">Banna</button>`}</div>
+  </div>`;
+  $('cGo').onclick = () => addCoins(uid, $('cAmt').value).then(searchPlayer);
+}
+
+async function render(){
+  document.querySelectorAll('#side [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === A.view));
+  const main = $('main');
+  try { main.innerHTML = await V[A.view](); }
+  catch(e){ main.innerHTML = '<div class="err">Errore: '+esc(e.message)+'</div>'; }
+  if (A.view === 'players'){ $('pGo').onclick = searchPlayer; $('pq').onkeydown = e => { if (e.key==='Enter') searchPlayer(); }; }
+}
+document.querySelectorAll('#side [data-v]').forEach(b => b.onclick = () => { A.view = b.dataset.v; render(); });
+function badges(){
+  $('bRep').textContent = A.reports.length; $('bRep').classList.toggle('hidden', !A.reports.length);
+  $('bTrap').textContent = A.traps.length; $('bTrap').classList.toggle('hidden', !A.traps.length);
+}
+
+/* ===== AUTH ===== */
+$('lGo').onclick = async () => {
+  $('lErr').textContent = '';
+  try { await signInWithEmailAndPassword(auth, $('lEmail').value.trim(), $('lPass').value); }
+  catch(e){ $('lErr').textContent = 'Accesso non riuscito'; }
+};
+$('lPass').onkeydown = e => { if (e.key === 'Enter') $('lGo').click(); };
+$('out').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async user => {
+  A.subs.forEach(u => u()); A.subs = [];
+  if (!user){ $('app').classList.add('hidden'); $('login').classList.remove('hidden'); return; }
+  const adm = await get(ref(db,'admins/'+user.uid)).catch(() => null);
+  if (!adm || !adm.exists()){ $('lErr').textContent = 'Questo account non fa parte dello staff.'; await signOut(auth); return; }
+  A.uid = user.uid; A.name = await nameOf(user.uid);
+  const cfg = await get(ref(db,'adminConfig/trap'));
+  A.trapPath = cfg.exists() && /^[A-Za-z0-9_-]+$/.test(cfg.val()) ? cfg.val() : null;
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  let first = true;
+  A.subs.push(onValue(query(ref(db,'reports'), limitToLast(200)), s => {
+    A.reports = []; s.forEach(c => { A.reports.push({id:c.key, ...c.val()}); });
+    badges(); if (!first && (A.view==='reports' || A.view==='dash')) render();
+  }));
+  if (A.trapPath) A.subs.push(onValue(ref(db, A.trapPath), s => {
+    const before = A.traps.length;
+    A.traps = []; s.forEach(c => { A.traps.push({uid:c.key, data:c.val()}); });
+    badges(); if (!first && A.traps.length > before) toast('🪤 Trappola scattata!');
+    if (!first && (A.view==='traps' || A.view==='dash')) render();
+  }));
+  A.subs.push(onValue(ref(db,'bans'), s => { A.bans = s.val() || {}; if (!first && A.view==='bans') render(); }));
+  setTimeout(() => { first = false; render(); }, 400);
+});
+</script>
+</body>
+</html>

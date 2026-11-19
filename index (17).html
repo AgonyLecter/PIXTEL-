@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0a1a">
+<title>PIXTEL — l'hotel in pixel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0a1a;--panel:#17142e;--panel2:#221d44;--line:#3a3270;--txt:#ece9ff;--mut:#8b84c9;--acc:#ff3fa4;--acc2:#3ff0ff;--gold:#ffd23f;--ok:#4dff8a;--bad:#ff4d6a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'VT323',monospace;font-size:20px;user-select:none;-webkit-user-select:none;touch-action:none}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+.hidden{display:none!important}
+canvas#view{position:fixed;inset:0;width:100vw;height:100vh;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer;display:block}
+
+/* pannelli pixel */
+.px{background:var(--panel);border:3px solid var(--line);box-shadow:0 0 0 3px #07051a,6px 6px 0 #07051a}
+.btn{background:var(--panel2);border:3px solid var(--line);padding:6px 12px;cursor:pointer;font-family:'Silkscreen',monospace;font-size:13px;letter-spacing:.5px;color:var(--txt);box-shadow:3px 3px 0 #07051a;transition:transform .05s}
+.btn:hover{border-color:var(--acc2)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #07051a}
+.btn.pink{background:var(--acc);border-color:#ff8fcb;color:#1a0010}
+.btn.cyan{background:var(--acc2);border-color:#a8fbff;color:#00181a}
+.btn.red{background:var(--bad);border-color:#ff9fb0;color:#1a0006}
+input.f,textarea.f,select.f{width:100%;background:#0d0b20;border:3px solid var(--line);padding:8px 10px;outline:none;color:var(--txt)}
+input.f:focus,textarea.f:focus{border-color:var(--acc2)}
+.err{color:var(--bad);min-height:22px;font-size:18px}
+.mut{color:var(--mut)}
+
+/* overlay */
+.ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#2a1458 0%,#0b0a1a 65%);padding:16px}
+.ov .box{width:100%;max-width:380px;padding:22px;display:flex;flex-direction:column;gap:10px}
+.logo{font-family:'Silkscreen',monospace;font-weight:700;font-size:54px;text-align:center;line-height:1;color:var(--acc);text-shadow:3px 3px 0 #5a0035,0 0 18px rgba(255,63,164,.6)}
+.logo span{color:var(--acc2);text-shadow:3px 3px 0 #005a60,0 0 18px rgba(63,240,255,.6)}
+.logo.bad{color:var(--bad);font-size:40px}
+.tag{text-align:center;color:var(--mut);margin-top:-4px;margin-bottom:6px}
+.tabs{display:flex;gap:6px}
+.tabs button{flex:1}
+.tabs button.on{background:var(--acc2);color:#00181a;border-color:#a8fbff}
+
+/* HUD */
+#hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:10;gap:8px}
+#hud>*{pointer-events:auto}
+#roomBox{padding:6px 12px;max-width:60vw}
+#roomName{font-family:'Silkscreen',monospace;font-size:14px;color:var(--acc2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#roomSub{font-size:17px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#coinBox{padding:6px 12px;display:flex;align-items:center;gap:8px;font-family:'Silkscreen',monospace;font-size:16px;color:var(--gold)}
+.coin{width:14px;height:14px;background:var(--gold);box-shadow:inset -3px -3px 0 #c79400,inset 2px 2px 0 #fff3b0;image-rendering:pixelated}
+.net{width:8px;height:8px;background:var(--ok);display:inline-block;margin-right:6px;vertical-align:middle}
+.net.off{background:var(--bad)}
+
+/* barra in basso */
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;gap:6px;padding:8px;align-items:center;background:linear-gradient(0deg,rgba(7,5,26,.95),rgba(7,5,26,.6));border-top:3px solid var(--line)}
+#bar .btn{padding:6px 8px;white-space:nowrap}
+#chatIn{flex:1;min-width:60px}
+@media (max-width:600px){#bar .lbl{display:none}}
+
+/* pannelli */
+.panel{position:fixed;z-index:20;left:50%;top:50%;transform:translate(-50%,-52%);width:min(440px,94vw);max-height:78vh;display:flex;flex-direction:column}
+.panel .hd{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-bottom:3px solid var(--line);font-family:'Silkscreen',monospace;font-size:14px;color:var(--acc2)}
+.panel .hd .x{cursor:pointer;color:var(--txt);padding:0 6px}
+.panel .bd{padding:10px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.rooms{display:flex;flex-direction:column;gap:6px}
+.room{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#0d0b20;border:3px solid var(--line);cursor:pointer}
+.room:hover{border-color:var(--acc)}
+.room .sw{width:18px;height:18px;flex:none;border:2px solid #07051a}
+.room .nm{flex:1;min-width:0}
+.room .nm b{display:block;font-family:'Silkscreen',monospace;font-size:12px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .nm small{color:var(--mut);font-size:16px}
+.room .cnt{font-family:'Silkscreen',monospace;font-size:12px;color:var(--ok);flex:none}
+.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sws{display:flex;gap:4px;flex-wrap:wrap}
+.sws i{width:24px;height:24px;border:3px solid #07051a;cursor:pointer;display:block}
+.sws i.on{border-color:#fff}
+.lab{font-family:'Silkscreen',monospace;font-size:11px;color:var(--mut);margin-top:4px}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg .btn.on{background:var(--acc2);color:#00181a}
+#wardPrev,#nickPrev{width:120px;height:170px;image-rendering:pixelated;background:radial-gradient(circle at 50% 70%,#2a2350,#0d0b20);border:3px solid var(--line);align-self:center}
+
+/* card giocatore */
+#card{width:min(300px,90vw)}
+#cardName{font-family:'Silkscreen',monospace;font-size:16px;color:var(--acc)}
+
+/* bolle chat stile hotel */
+#bubbles{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden}
+.bub{position:absolute;padding:3px 8px 4px;background:#fff;color:#111;border:2px solid #07051a;box-shadow:2px 2px 0 rgba(0,0,0,.4);font-size:19px;line-height:1.05;max-width:min(420px,80vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:top .3s steps(4)}
+.bub b{font-weight:400;margin-right:4px}
+.bub:after{content:'';position:absolute;left:var(--tail,50%);bottom:-7px;width:8px;height:6px;background:#fff;border:2px solid #07051a;border-top:none;transform:translateX(-50%)}
+
+#tip{position:fixed;z-index:6;pointer-events:none;background:rgba(7,5,26,.9);border:2px solid var(--acc2);padding:0 6px;font-family:'Silkscreen',monospace;font-size:11px;transform:translate(-50%,-100%)}
+#toast{position:fixed;z-index:60;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+#toast div{background:var(--panel);border:3px solid var(--acc);padding:6px 12px;box-shadow:4px 4px 0 #07051a;animation:tin .2s steps(3)}
+@keyframes tin{from{transform:translateY(-10px);opacity:0}}
+</style>
+</head>
+<body>
+
+<canvas id="view"></canvas>
+<div id="bubbles"></div>
+<div id="tip" class="hidden"></div>
+
+<!-- LOGIN -->
+<div id="auth" class="ov">
+  <div class="box px">
+    <div class="logo">PIX<span>TEL</span></div>
+    <div class="tag">l'hotel in pixel che non dorme mai</div>
+    <div class="tabs"><button class="btn on" data-t="login">Entra</button><button class="btn" data-t="reg">Registrati</button></div>
+    <input id="aEmail" class="f" type="email" placeholder="Email" autocomplete="email">
+    <input id="aPass" class="f" type="password" placeholder="Password (min 6)" autocomplete="current-password">
+    <button id="aGo" class="btn pink">Entra nell'hotel</button>
+    <div id="aErr" class="err"></div>
+  </div>
+</div>
+
+<!-- SCELTA NOME -->
+<div id="nick" class="ov hidden">
+  <div class="box px">
+    <div class="logo" style="font-size:30px">CHI <span>SEI?</span></div>
+    <canvas id="nickPrev" width="24" height="34"></canvas>
+    <button id="nickRoll" class="btn">🎲 Cambia look</button>
+    <input id="nickIn" class="f" maxlength="16" placeholder="Nome (3-16: lettere, numeri, _)">
+    <button id="nickGo" class="btn pink">Fai il check-in</button>
+    <div id="nickErr" class="err"></div>
+    <button id="nickOut" class="btn">Esci</button>
+  </div>
+</div>
+
+<!-- BAN -->
+<div id="banned" class="ov hidden">
+  <div class="box px">
+    <div class="logo bad">ACCESSO NEGATO</div>
+    <p style="text-align:center">Il tuo account è stato bannato dallo staff.</p>
+    <p id="banReason" class="mut" style="text-align:center"></p>
+    <button id="banOut" class="btn">Esci</button>
+  </div>
+</div>
+
+<!-- AVVISI -->
+<div id="notice" class="ov hidden">
+  <div class="box px">
+    <div class="logo" style="font-size:30px">PIX<span>TEL</span></div>
+    <p id="noticeTxt" style="text-align:center"></p>
+    <button id="noticeBtn" class="btn cyan">Riprova</button>
+    <button id="noticeOut" class="btn">Esci</button>
+  </div>
+</div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div id="roomBox" class="px"><div id="roomName">—</div><div id="roomSub"><span id="net" class="net"></span><span id="roomInfo"></span></div></div>
+  <div id="coinBox" class="px"><div class="coin"></div><span id="coins">0</span></div>
+</div>
+
+<!-- BARRA -->
+<div id="bar" class="hidden">
+  <button class="btn" id="bHall" title="Hall">🏨<span class="lbl"> Hall</span></button>
+  <button class="btn" id="bNav" title="Navigatore">🧭<span class="lbl"> Stanze</span></button>
+  <button class="btn" id="bWard" title="Guardaroba">👕<span class="lbl"> Look</span></button>
+  <input id="chatIn" class="f" maxlength="120" placeholder="Scrivi e premi invio…" enterkeyhint="send">
+  <button class="btn pink" id="bSend">➤</button>
+  <button class="btn" id="bOut" title="Esci">⏻</button>
+</div>
+
+<!-- NAVIGATORE -->
+<div id="nav" class="panel px hidden">
+  <div class="hd"><span>NAVIGATORE</span><span class="x" data-close="nav">✕</span></div>
+  <div class="bd">
+    <div class="tabs"><button class="btn on" data-nt="all">Tutte</button><button class="btn" data-nt="mine">Le mie</button><button class="btn" data-nt="new">+ Crea</button></div>
+    <div id="navList" class="rooms"></div>
+    <div id="navNew" class="hidden" style="display:flex;flex-direction:column;gap:6px">
+      <div class="lab">NOME STANZA</div>
+      <input id="nrName" class="f" maxlength="30" placeholder="Es. Il Covo Neon">
+      <div class="lab">GRANDEZZA</div>
+      <div class="seg" id="nrSize"><button class="btn on" data-v="S">Piccola</button><button class="btn" data-v="M">Media</button><button class="btn" data-v="L">Grande</button></div>
+      <div class="lab">PAVIMENTO</div><div class="sws" id="nrFloor"></div>
+      <div class="lab">PARETI</div><div class="sws" id="nrWall"></div>
+      <button id="nrGo" class="btn pink">Costruisci stanza</button>
+      <div id="nrErr" class="err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GUARDAROBA -->
+<div id="ward" class="panel px hidden">
+  <div class="hd"><span>GUARDAROBA</span><span class="x" data-close="ward">✕</span></div>
+  <div class="bd">
+    <canvas id="wardPrev" width="24" height="34"></canvas>
+    <div class="lab">CAPELLI</div><div class="seg" id="wStyle"><button class="btn" data-v="0">Corti</button><button class="btn" data-v="1">Lunghi</button><button class="btn" data-v="2">Punk</button><button class="btn" data-v="3">Rasati</button></div>
+    <div class="lab">PELLE</div><div class="sws" id="wSkin"></div>
+    <div class="lab">COLORE CAPELLI</div><div class="sws" id="wHair"></div>
+    <div class="lab">MAGLIA</div><div class="sws" id="wShirt"></div>
+    <div class="lab">PANTALONI</div><div class="sws" id="wPants"></div>
+    <div class="lab">MOTTO</div><input id="wMotto" class="f" maxlength="40">
+    <button id="wSave" class="btn pink">Salva look</button>
+  </div>
+</div>
+
+<!-- CARD GIOCATORE -->
+<div id="card" class="panel px hidden">
+  <div class="hd"><span id="cardName">—</span><span class="x" data-close="card">✕</span></div>
+  <div class="bd">
+    <div id="cardMotto" class="mut"></div>
+    <div id="cardRep">
+      <textarea id="repTxt" class="f" rows="2" maxlength="250" placeholder="Motivo della segnalazione (opzionale)"></textarea>
+      <button id="repGo" class="btn red" style="margin-top:6px;width:100%">🚩 Segnala allo staff</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, get, set, update, remove, push, onValue, onChildAdded, onChildChanged, onChildRemoved, query, orderByChild, startAt, endAt, limitToFirst, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXkaxi5ZWr3pzr3C_0BpwCrL_7y0tC_t8",
+  authDomain: "easygo-f5046.firebaseapp.com",
+  databaseURL: "https://easygo-f5046-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "easygo-f5046",
+  storageBucket: "easygo-f5046.firebasestorage.app",
+  messagingSenderId: "509243295842",
+  appId: "1:509243295842:web:3d3c7f60166d497480293b",
+  measurementId: "G-WFMBB2JEDD"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+/* ================= COSTANTI ================= */
+const TW = 24, TH = 12, HW = 12, HH = 6;   // tile isometrico in pixel "logici"
+const WALL_H = 46, THICK = 4;
+const STEP_MS = 350;                      // velocità di camminata (le regole impongono >= 200ms)
+const LOBBY = 'lobby';
+const DIRS8 = [[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+const DIR_INDEX = {'0,-1':0,'1,-1':1,'1,0':2,'1,1':3,'0,1':4,'-1,1':5,'-1,0':6,'-1,-1':7};
+const VIEW = [ {v:'back',m:false},{v:'side',m:false},{v:'side',m:false},{v:'front',m:false},
+               {v:'side',m:true},{v:'side',m:true},{v:'back',m:true},{v:'back',m:false} ];
+const SKINS  = ['#ffe0c2','#f6c99a','#e0ac69','#c68642','#8d5524','#5c3a21'];
+const HAIRS  = ['#1c140f','#5a3825','#b5651d','#f0c86a','#e6e6e6','#ff3fa4','#3ff0ff','#8a5cff','#4dff8a'];
+const CLOTH  = ['#ff3fa4','#3ff0ff','#8a5cff','#ffd23f','#4dff8a','#ff6a3d','#ffffff','#2b2b3f','#1f4bff','#c41e3a','#3d8b3d','#5b3a1e'];
+const FLOORS = ['#2a2350','#3d2a5c','#1f3a4d','#4a2a2a','#2f4a2f','#4b4b5c','#5c4a2a','#14141f'];
+const WALLS  = ['#3b2d7a','#5a2a6e','#1f5a6e','#6e2a3b','#2f6e4a','#6e6e80','#7a5a2a','#24243a'];
+
+/* ================= STATO ================= */
+const S = {
+  uid:null, me:null, coins:0,
+  roomId:null, room:null, layer:null,
+  players:new Map(), profiles:new Map(), profSubs:new Map(),
+  roomSubs:[], sess:[],
+  path:[], walking:false, stepTimer:null,
+  entering:false, leaving:false,
+  cam:{x:0,y:0}, drag:null, mouse:null,
+  lastChat:0, lastReport:0, lastAuto:0, denials:[],
+  banned:false, bubbles:[], cardUid:null
+};
+let srvOff = 0;
+onValue(ref(db,'.info/serverTimeOffset'), s => srvOff = s.val() || 0);
+const srvNow = () => Date.now() + srvOff;
+
+/* ================= UTILS ================= */
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+function toast(msg){ const d=document.createElement('div'); d.textContent=msg; $('toast').appendChild(d); setTimeout(()=>d.remove(),2800); }
+function shade(hex, amt){
+  const n = parseInt(hex.slice(1),16);
+  const c = v => Math.max(0,Math.min(255,v+amt));
+  return '#'+((1<<24)+(c(n>>16)<<16)+(c((n>>8)&255)<<8)+c(n&255)).toString(16).slice(1);
+}
+function nameColor(n){ let h=0; for(const ch of n) h=(h*31+ch.charCodeAt(0))>>>0; return `hsl(${h%360} 70% 38%)`; }
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function randomLook(){ return { skin:pick(SKINS), hair:pick(HAIRS), hairStyle:Math.floor(Math.random()*4), shirt:pick(CLOTH), pants:pick(CLOTH) }; }
+
+/* ================= SICUREZZA CLIENT =================
+   La vera protezione sono le regole del database: il client non può
+   modificare monete/oggetti. Qui teniamo traccia dei tentativi anomali. */
+async function guardedWrite(fn, kind){
+  try { await fn(); return true; }
+  catch(e){
+    const msg = String(e && (e.code || e.message) || '').toLowerCase();
+    if (msg.includes('permission')) noteDenied(kind); else console.warn(kind, e);
+    return false;
+  }
+}
+function noteDenied(kind){
+  const now = Date.now();
+  S.denials = S.denials.filter(d => now - d.t < 30000);
+  S.denials.push({t:now, kind});
+  if (kind === 'chat') toast('Messaggio bloccato');
+  if (S.denials.length >= 6 && now - S.lastAuto > 120000 && !S.banned){
+    S.lastAuto = now;
+    const sum = {}; S.denials.forEach(d => sum[d.kind] = (sum[d.kind]||0)+1);
+    sendReport('rule_violation', S.uid, 'Scritture rifiutate in 30s: '+JSON.stringify(sum), S.me?.name || '');
+    toast('Azioni bloccate. Se continua contatta lo staff.');
+  }
+}
+async function sendReport(type, target, detail, targetName=''){
+  if (Date.now() - S.lastReport < 11000) return false;
+  S.lastReport = Date.now();
+  const k = push(ref(db,'reports')).key;
+  try{
+    await update(ref(db), {
+      [`reports/${k}`]: { by:S.uid, byName:(S.me?.name||'').slice(0,16), type, target:String(target||'').slice(0,64),
+                          targetName:String(targetName||'').slice(0,16), room:String(S.roomId||'').slice(0,64),
+                          detail:String(detail||'').slice(0,300), t:serverTimestamp() },
+      [`rate/${S.uid}/report`]: serverTimestamp()
+    });
+    return true;
+  }catch(e){ return false; }
+}
+const _wallet = { v:0 };
+const walletView = {};
+Object.defineProperty(walletView,'coins',{ get:()=>_wallet.v, set:v=>{ sendReport('client_tamper', S.uid, 'Modifica monete dal client: '+String(v).slice(0,40), S.me?.name||''); }, enumerable:true });
+window.pixtel = Object.freeze({
+  version:'0.1.0',
+  wallet: walletView,
+  staff: {
+    async grantCoins(amount, target){
+      try { await set(ref(db,'economy/'+S.uid), { coins:Number(amount)||0, target:String(target||S.uid), at:Date.now() }); toast('OK'); } catch(e){}
+    }
+  }
+});
+
+/* ================= SPRITE AVATAR ================= */
+const HEAD = {
+ front:["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khhssssshk.",".khsssssssk.",".kssesssesk.",".kssssssssk.","..kssmmssk..","...kssssk..."],
+ side: ["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khhhhssssk.",".khhssssssk.",".khsssesesk.",".kssssssssk.","..ksssssmk..","...kssssk..."],
+ back: ["...kkkkkk...","..khhhhhhk..",".khhhhhhhhk.",".khhhhhhhhk.",".khhhhhhhhk.",".khhhhhhhhk.",".kshhhhhhsk.","..khhhhhhk..","...kssssk..."]
+};
+const BODY = ["....kssk....","..kkttttkk..",".kttttttttk.","kuttttttttuk","kuttttttttuk","kuttttttttuk","kskttttttksk",".kkppppppkk.","..kppppppk.."];
+const LEGS0 = ["..kppkkppk..","..kppkkppk..","..kppkkppk..","..kppkkppk..","..kppkkppk..","..kbbkkbbk..","..kkkkkkkk.."];
+const LEGS1 = ["..kppkkppk..","..kppkkppk..","..kppkkppk..","..kppkkppk..","..kbbkkppk..","..kkkkkbbk..","......kkkk.."];
+const spriteCache = new Map();
+function buildRows(view, frame, style){
+  const blank = () => '............'.split('');
+  let legs = (frame===0 ? LEGS0 : LEGS1).map(r => r.split(''));
+  if (frame===2) legs = legs.map(r => r.slice().reverse());
+  const rows = [blank(), blank(), ...HEAD[view].map(r=>r.split('')), ...BODY.map(r=>r.split('')), ...legs];
+  if (style===3) for (let r=2;r<11;r++) rows[r] = rows[r].map(c => c==='h' ? 's' : c);
+  if (style===2){ rows[0]="....k..k....".split(''); rows[1]="...khkkhk...".split(''); rows[2][4]='h'; rows[2][7]='h'; }
+  if (style===1){
+    for (let r=7;r<14;r++){ rows[r][0]='k'; rows[r][1]='h'; rows[r][10]='h'; rows[r][11]='k'; }
+    if (view==='back') for (let r=8;r<13;r++) for (let c=2;c<10;c++) rows[r][c]='h';
+  }
+  return rows;
+}
+function sprite(look, view, frame, mirror){
+  const key = [look.skin,look.hair,look.hairStyle,look.shirt,look.pants,view,frame,mirror].join('|');
+  let c = spriteCache.get(key);
+  if (c) return c;
+  const pal = { k:'#140c26', e:'#140c26', s:look.skin, m:shade(look.skin,-45), h:look.hair, t:look.shirt, u:shade(look.shirt,-35), p:look.pants, b:'#1d1b2e' };
+  const rows = buildRows(view, frame, look.hairStyle|0);
+  c = document.createElement('canvas'); c.width = 12; c.height = rows.length;
+  const g = c.getContext('2d');
+  rows.forEach((r,y) => r.forEach((ch,x) => {
+    if (ch==='.') return;
+    g.fillStyle = pal[ch] || '#f0f';
+    g.fillRect(mirror ? 11-x : x, y, 1, 1);
+  }));
+  if (spriteCache.size > 600) spriteCache.clear();
+  spriteCache.set(key, c);
+  return c;
+}
+// disegna con i piedi in (fx,fy)
+function drawAvatar(g, fx, fy, look, d, frame){
+  g.fillStyle = 'rgba(0,0,0,.35)';
+  g.fillRect(fx-4, fy-1, 8, 1); g.fillRect(fx-6, fy, 12, 1); g.fillRect(fx-4, fy+1, 8, 1);
+  const vw = VIEW[d] || VIEW[2];
+  const bob = frame ? -1 : 0;
+  g.drawImage(sprite(look, vw.v, frame, vw.m), fx-6, fy-26+bob);
+}
+function drawPreview(canvas, look){
+  const g = canvas.getContext('2d'); g.imageSmoothingEnabled=false;
+  g.clearRect(0,0,canvas.width,canvas.height);
+  drawAvatar(g, 12, 31, look, 3, 0);
+}
+
+/* ================= RENDER ================= */
+const cv = $('view'), ctx = cv.getContext('2d');
+let PS = 3, stars = [];
+function resize(){
+  PS = innerWidth < 700 ? 2 : 3;
+  cv.width = Math.ceil(innerWidth/PS); cv.height = Math.ceil(innerHeight/PS);
+  ctx.imageSmoothingEnabled = false;
+  stars = Array.from({length:Math.floor(cv.width*cv.height/900)}, () => ({x:Math.random(), y:Math.random(), p:Math.random()*6.28}));
+}
+addEventListener('resize', resize); resize();
+
+function origin(){
+  const r = S.room;
+  const cx = (r.w/2 - r.h/2)*HW, cy = (r.w/2 + r.h/2)*HH;
+  return { x:Math.round(cv.width/2 - cx + S.cam.x), y:Math.round(cv.height/2 - cy + S.cam.y + 14) };
+}
+function diamond(g, sx, sy, fill, edge){
+  g.fillStyle = edge;
+  for (let i=0;i<12;i++){ const k=i<6?i:11-i, hw=2+2*k; g.fillRect(sx-hw, sy+i, hw*2, 1); }
+  g.fillStyle = fill;
+  for (let i=1;i<11;i++){ const k=i<6?i-1:10-i, hw=2*k+2; g.fillRect(sx-hw, sy+i, hw*2, 1); }
+}
+function diamondOutline(g, sx, sy, col){
+  g.fillStyle = col;
+  for (let i=0;i<12;i++){ const k=i<6?i:11-i, hw=2+2*k; g.fillRect(sx-hw, sy+i, 2, 1); g.fillRect(sx+hw-2, sy+i, 2, 1); }
+}
+// Costruisce l'immagine statica della stanza (pareti + pavimento) una volta sola
+function buildLayer(){
+  const r = S.room;
+  const minX = -(r.h)*HW - 2, maxX = (r.w)*HW + 2;
+  const minY = -WALL_H - 6, maxY = (r.w + r.h)*HH + THICK + 2;
+  const c = document.createElement('canvas'); c.width = maxX-minX; c.height = maxY-minY;
+  const g = c.getContext('2d');
+  const ox = -minX, oy = -minY;
+  const P = (x,y) => ({ sx: ox + (x-y)*HW, sy: oy + (x+y)*HH });
+  const wl = shade(r.wall, 12), wr = shade(r.wall, -10);
+  const neonL = '#ff3fa4', neonR = '#3ff0ff';
+  // parete sinistra (x = 0)
+  for (let y=0;y<r.h;y++){
+    const p = P(0,y);
+    for (let c2=0;c2<12;c2++){
+      const col = p.sx-12+c2, bot = p.sy+6-(c2>>1);
+      g.fillStyle = wl;              g.fillRect(col, bot-WALL_H, 1, WALL_H);
+      g.fillStyle = shade(wl, 25);   g.fillRect(col, bot-WALL_H-3, 1, 3);
+      g.fillStyle = neonL;           g.fillRect(col, bot-WALL_H+7, 1, 1);
+      g.fillStyle = 'rgba(255,63,164,.25)'; g.fillRect(col, bot-WALL_H+6, 1, 1); g.fillRect(col, bot-WALL_H+8, 1, 1);
+      g.fillStyle = shade(wl, -30);  g.fillRect(col, bot-3, 1, 3);
+      if (y === r.door.y){
+        if (c2>=2 && c2<=9){ g.fillStyle = '#05030c'; g.fillRect(col, bot-31, 1, 31); }
+        else if (c2===1 || c2===10){ g.fillStyle = shade(wl, 30); g.fillRect(col, bot-33, 1, 33); }
+      }
+    }
+  }
+  // parete destra (y = 0)
+  for (let x=0;x<r.w;x++){
+    const p = P(x,0);
+    for (let c2=0;c2<12;c2++){
+      const col = p.sx+c2, bot = p.sy+(c2>>1);
+      g.fillStyle = wr;              g.fillRect(col, bot-WALL_H, 1, WALL_H);
+      g.fillStyle = shade(wr, 25);   g.fillRect(col, bot-WALL_H-3, 1, 3);
+      g.fillStyle = neonR;           g.fillRect(col, bot-WALL_H+7, 1, 1);
+      g.fillStyle = 'rgba(63,240,255,.25)'; g.fillRect(col, bot-WALL_H+6, 1, 1); g.fillRect(col, bot-WALL_H+8, 1, 1);
+      g.fillStyle = shade(wr, -30);  g.fillRect(col, bot-3, 1, 3);
+    }
+  }
+  // pavimento + spessore
+  const fe = shade(r.floor, -22), sideR = shade(r.floor, -38), sideL = shade(r.floor, -55);
+  for (let y=0;y<r.h;y++) for (let x=0;x<r.w;x++){
+    const p = P(x,y);
+    let f = (x+y)%2 ? r.floor : shade(r.floor, 7);
+    if (x===0 && y===r.door.y) f = shade(r.floor, 22);
+    diamond(g, p.sx, p.sy, f, fe);
+    if (x===r.w-1){ g.fillStyle = sideR; for (let c2=0;c2<12;c2++) g.fillRect(p.sx+c2, p.sy+12-(c2>>1), 1, THICK); }
+    if (y===r.h-1){ g.fillStyle = sideL; for (let c2=0;c2<12;c2++) g.fillRect(p.sx-12+c2, p.sy+6+(c2>>1), 1, THICK); }
+  }
+  S.layer = { c, minX, minY };
+}
+function tileAt(lx, ly){
+  if (!S.room) return null;
+  const o = origin();
+  const u = (lx-o.x)/HW, v = (ly-o.y)/HH;
+  const x = Math.floor((v+u)/2), y = Math.floor((v-u)/2);
+  return (x>=0 && y>=0 && x<S.room.w && y<S.room.h) ? {x,y} : null;
+}
+function renderPos(p, now){
+  const k = Math.min(1, (now - p.t0)/STEP_MS);
+  return { rx: p.fx + (p.x-p.fx)*k, ry: p.fy + (p.y-p.fy)*k, moving: k < 1 };
+}
+function avatarScreen(p, now, o){
+  const rp = renderPos(p, now);
+  return { fx: Math.round(o.x + (rp.rx-rp.ry)*HW), fy: Math.round(o.y + (rp.rx+rp.ry)*HH + 6), rp };
+}
+function loop(t){
+  requestAnimationFrame(loop);
+  const W = cv.width, H = cv.height;
+  ctx.fillStyle = '#0b0a1a'; ctx.fillRect(0,0,W,H);
+  for (const s of stars){
+    const b = Math.sin(t/900 + s.p);
+    ctx.fillStyle = b > .85 ? '#ffffff' : b > .2 ? '#6d66b0' : '#2a2550';
+    ctx.fillRect((s.x*W)|0, (s.y*H)|0, 1, 1);
+  }
+  if (!S.room || !S.layer) return;
+  const o = origin();
+  ctx.drawImage(S.layer.c, o.x + S.layer.minX, o.y + S.layer.minY);
+  if (S.mouse && !S.drag){
+    const tl = tileAt(S.mouse.x/PS, S.mouse.y/PS);
+    if (tl) diamondOutline(ctx, o.x + (tl.x-tl.y)*HW, o.y + (tl.x+tl.y)*HH, 'rgba(63,240,255,.85)');
+  }
+  const now = performance.now();
+  const list = [];
+  for (const [uid,p] of S.players){
+    const prof = S.profiles.get(uid); if (!prof) continue;
+    const a = avatarScreen(p, now, o);
+    list.push({uid, p, prof, a, depth:a.rp.rx + a.rp.ry + (uid===S.uid?0.001:0)});
+  }
+  list.sort((a,b) => a.depth - b.depth);
+  S.drawn = list;
+  for (const it of list){
+    const frame = it.a.rp.moving ? (Math.floor(now/(STEP_MS/2))%2 ? 1 : 2) : 0;
+    drawAvatar(ctx, it.a.fx, it.a.fy, it.prof.look, it.p.d, frame);
+    if (it.uid === S.uid && !it.a.rp.moving){
+      ctx.fillStyle = '#4dff8a'; const y0 = it.a.fy - 33 + Math.round(Math.sin(now/250));
+      ctx.fillRect(it.a.fx-2, y0, 5, 1); ctx.fillRect(it.a.fx-1, y0+1, 3, 1); ctx.fillRect(it.a.fx, y0+2, 1, 1);
+    }
+  }
+  updateTip();
+}
+requestAnimationFrame(loop);
+
+function avatarHit(lx, ly){
+  if (!S.drawn) return null;
+  for (let i=S.drawn.length-1;i>=0;i--){
+    const a = S.drawn[i].a;
+    if (lx >= a.fx-6 && lx <= a.fx+6 && ly >= a.fy-27 && ly <= a.fy+1) return S.drawn[i];
+  }
+  return null;
+}
+function updateTip(){
+  const tip = $('tip');
+  if (!S.mouse || S.drag){ tip.classList.add('hidden'); return; }
+  const h = avatarHit(S.mouse.x/PS, S.mouse.y/PS);
+  if (!h){ tip.classList.add('hidden'); return; }
+  tip.textContent = h.prof.name;
+  tip.style.left = (h.a.fx*PS)+'px'; tip.style.top = ((h.a.fy-29)*PS)+'px';
+  tip.classList.remove('hidden');
+}
+
+/* ================= INPUT ================= */
+cv.addEventListener('pointerdown', e => { S.drag = {x:e.clientX, y:e.clientY, cx:S.cam.x, cy:S.cam.y, moved:false}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => {
+  if (e.pointerType === 'mouse') S.mouse = {x:e.clientX, y:e.clientY};
+  const d = S.drag; if (!d) return;
+  const dx = e.clientX-d.x, dy = e.clientY-d.y;
+  if (!d.moved && Math.hypot(dx,dy) > 8) d.moved = true;
+  if (d.moved){ S.cam.x = Math.round(d.cx + dx/PS); S.cam.y = Math.round(d.cy + dy/PS); }
+});
+cv.addEventListener('pointerup', e => { const d = S.drag; S.drag = null; if (d && !d.moved) handleClick(e.clientX/PS, e.clientY/PS); });
+cv.addEventListener('pointerleave', () => { S.mouse = null; });
+function handleClick(lx, ly){
+  if (!S.room) return;
+  $('chatIn').blur();
+  const h = avatarHit(lx, ly);
+  if (h){ openCard(h.uid); return; }
+  const t = tileAt(lx, ly);
+  if (t) walkTo(t.x, t.y);
+}
+
+/* ================= MOVIMENTO ================= */
+function findPath(sx, sy, tx, ty){
+  const W = S.room.w, H = S.room.h;
+  const occ = new Set();
+  for (const [id,p] of S.players) if (id !== S.uid) occ.add(p.x+','+p.y);
+  if (occ.has(tx+','+ty) || (sx===tx && sy===ty)) return [];
+  const prev = new Map([[sx+','+sy, null]]);
+  const q = [[sx,sy]];
+  while (q.length){
+    const [x,y] = q.shift();
+    if (x===tx && y===ty) break;
+    for (const [dx,dy] of DIRS8){
+      const nx=x+dx, ny=y+dy, k=nx+','+ny;
+      if (nx<0||ny<0||nx>=W||ny>=H||prev.has(k)||occ.has(k)) continue;
+      if (dx && dy && (occ.has((x+dx)+','+y) || occ.has(x+','+(y+dy)))) continue;
+      prev.set(k,[x,y]); q.push([nx,ny]);
+    }
+  }
+  if (!prev.has(tx+','+ty)) return [];
+  const path = []; let cur = [tx,ty];
+  while (cur && !(cur[0]===sx && cur[1]===sy)){ path.unshift(cur); cur = prev.get(cur[0]+','+cur[1]); }
+  return path;
+}
+function walkTo(tx, ty){
+  const me = S.players.get(S.uid); if (!me) return;
+  S.path = findPath(me.x, me.y, tx, ty);
+  if (!S.walking) stepNext();
+}
+function stepNext(){
+  if (!S.path.length || !S.roomId){ S.walking = false; return; }
+  S.walking = true;
+  const me = S.players.get(S.uid);
+  if (!me){ S.walking = false; S.path = []; return; }
+  const [nx, ny] = S.path.shift();
+  const d = DIR_INDEX[(nx-me.x)+','+(ny-me.y)];
+  if (d === undefined){ S.path = []; S.walking = false; return; }
+  const room = S.roomId;
+  guardedWrite(() => set(ref(db,`presence/${room}/${S.uid}`), {x:nx, y:ny, d, t:serverTimestamp()}), 'move')
+    .then(ok => { if (!ok) S.path = []; });
+  S.stepTimer = setTimeout(stepNext, STEP_MS);
+}
+function upsertPlayer(uid, v){
+  if (!v) return;
+  let p = S.players.get(uid);
+  if (!p){
+    p = { x:v.x, y:v.y, d:v.d|0, fx:v.x, fy:v.y, t0:0 };
+    S.players.set(uid, p);
+    watchProfile(uid);
+  } else {
+    const rp = renderPos(p, performance.now());
+    const far = Math.abs(v.x-p.x) > 1 || Math.abs(v.y-p.y) > 1;
+    p.fx = far ? v.x : rp.rx; p.fy = far ? v.y : rp.ry;
+    p.x = v.x; p.y = v.y; p.d = v.d|0; p.t0 = performance.now();
+  }
+  updateHud();
+}
+function removePlayer(uid){
+  if (uid === S.uid){
+    // rimosso dal server (es. riconnessione): rientro dalla porta
+    if (!S.leaving && !S.entering && S.roomId){ const r = S.roomId; setTimeout(() => { if (S.roomId === r) enterRoom(r); }, 500); }
+    return;
+  }
+  S.players.delete(uid);
+  const un = S.profSubs.get(uid); if (un){ un(); S.profSubs.delete(uid); }
+  updateHud();
+}
+function watchProfile(uid){
+  if (S.profSubs.has(uid)) return;
+  S.profSubs.set(uid, onValue(ref(db,'users/'+uid), s => { if (s.exists()) S.profiles.set(uid, s.val()); }));
+}
+
+/* ================= STANZE ================= */
+async function enterRoom(id){
+  if (S.entering || S.banned) return;
+  S.entering = true;
+  try{
+    const rs = await get(ref(db,'rooms/'+id));
+    if (!rs.exists()){
+      if (id === LOBBY){ showNotice('La Hall non è ancora stata aperta. Un admin deve inizializzarla da furio.html.'); }
+      else { toast('Stanza non trovata'); S.entering = false; return enterRoom(LOBBY); }
+      return;
+    }
+    await leaveRoom();
+    S.roomId = id; S.room = rs.val(); S.cam = {x:0,y:0};
+    buildLayer(); updateHud();
+    if (!await guardedWrite(() => set(ref(db,`players/${S.uid}/room`), id), 'room')){ showNotice('Non riesco a farti entrare. Riprova tra poco.'); return; }
+    const pRef = ref(db,`presence/${id}/${S.uid}`);
+    try { await remove(pRef); } catch(e){}
+    await onDisconnect(pRef).remove();
+    const dr = S.room.door;
+    if (!await guardedWrite(() => set(pRef, {x:dr.x, y:dr.y, d:2, t:serverTimestamp()}), 'enter')){ showNotice('Ingresso rifiutato.'); return; }
+    watchProfile(S.uid);
+    const pr = ref(db,'presence/'+id);
+    S.roomSubs.push(onChildAdded(pr, s => upsertPlayer(s.key, s.val())));
+    S.roomSubs.push(onChildChanged(pr, s => upsertPlayer(s.key, s.val())));
+    S.roomSubs.push(onChildRemoved(pr, s => removePlayer(s.key)));
+    S.roomSubs.push(onValue(ref(db,'rooms/'+id), s => {
+      if (!s.exists()){ if (S.roomId === id && id !== LOBBY){ toast('La stanza è stata chiusa'); setTimeout(() => enterRoom(LOBBY), 50); } return; }
+      const old = S.room; S.room = s.val();
+      if (!old || old.floor !== S.room.floor || old.wall !== S.room.wall || old.w !== S.room.w || old.h !== S.room.h) buildLayer();
+      updateHud();
+    }));
+    const cq = query(ref(db,'chat/'+id), orderByChild('t'), startAt(srvNow()-1500));
+    S.roomSubs.push(onChildAdded(cq, s => showBubble(s.val())));
+    // pulizia chat vecchia (> 10 min) — permessa dalle regole a chiunque
+    get(query(ref(db,'chat/'+id), orderByChild('t'), endAt(srvNow()-620000), limitToFirst(25)))
+      .then(s => s.forEach(c => { remove(c.ref).catch(()=>{}); })).catch(()=>{});
+  } finally { S.entering = false; }
+}
+async function leaveRoom(){
+  if (!S.roomId) return;
+  S.leaving = true;
+  clearTimeout(S.stepTimer); S.path = []; S.walking = false;
+  S.roomSubs.forEach(u => u()); S.roomSubs = [];
+  for (const [uid,u] of S.profSubs) if (uid !== S.uid){ u(); S.profSubs.delete(uid); }
+  const pRef = ref(db,`presence/${S.roomId}/${S.uid}`);
+  try { await onDisconnect(pRef).cancel(); await remove(pRef); } catch(e){}
+  S.players.clear(); clearBubbles();
+  S.roomId = null; S.room = null; S.layer = null;
+  S.leaving = false;
+}
+function updateHud(){
+  if (!S.room) return;
+  $('roomName').textContent = S.room.name;
+  $('roomInfo').textContent = (S.roomId===LOBBY ? 'Hall pubblica' : 'di '+S.room.ownerName) + ' · ' + S.players.size + ' online';
+}
+
+/* ================= CHAT ================= */
+async function sendChat(){
+  const inp = $('chatIn');
+  const text = inp.value.trim().slice(0,120);
+  if (!text || !S.roomId || !S.me) return;
+  if (Date.now() - S.lastChat < 1100){ toast('Piano! Un messaggio al secondo'); return; }
+  S.lastChat = Date.now();
+  inp.value = '';
+  const k = push(ref(db,'chat/'+S.roomId)).key;
+  await guardedWrite(() => update(ref(db), {
+    [`chat/${S.roomId}/${k}`]: { uid:S.uid, name:S.me.name, text, t:serverTimestamp() },
+    [`rate/${S.uid}/chat`]: serverTimestamp()
+  }), 'chat');
+}
+const BUB_STEP = 30;
+function showBubble(m){
+  if (!m || !m.text) return;
+  const layer = $('bubbles');
+  const el = document.createElement('div'); el.className = 'bub';
+  const b = document.createElement('b'); b.textContent = m.name + ':'; b.style.color = nameColor(m.name);
+  el.appendChild(b); el.appendChild(document.createTextNode(m.text));
+  el.style.left = '0px'; el.style.top = '-200px';
+  layer.appendChild(el);
+  let x = innerWidth/2;
+  const p = S.players.get(m.uid);
+  if (p && S.room){ const a = avatarScreen(p, performance.now(), origin()); x = a.fx*PS; }
+  const w = el.offsetWidth;
+  const left = Math.max(6, Math.min(innerWidth - w - 6, x - w/2));
+  el.style.left = left+'px';
+  el.style.setProperty('--tail', Math.max(10, Math.min(w-10, x-left))+'px');
+  const base = Math.round(innerHeight*0.32);
+  S.bubbles.forEach(bb => { bb.y -= BUB_STEP; bb.el.style.top = bb.y+'px'; });
+  S.bubbles.push({el, y:base}); el.style.top = base+'px';
+  pruneBubbles();
+}
+function pruneBubbles(){ S.bubbles = S.bubbles.filter(bb => { if (bb.y < -40){ bb.el.remove(); return false; } return true; }); }
+function clearBubbles(){ S.bubbles.forEach(bb => bb.el.remove()); S.bubbles = []; }
+setInterval(() => { if (!S.bubbles.length) return; S.bubbles.forEach(bb => { bb.y -= BUB_STEP; bb.el.style.top = bb.y+'px'; }); pruneBubbles(); }, 5000);
+
+/* ================= UI: PANNELLI ================= */
+function closePanels(){ ['nav','ward','card'].forEach(hide); }
+document.querySelectorAll('[data-close]').forEach(x => x.onclick = () => hide(x.dataset.close));
+function showNotice(txt){ $('noticeTxt').textContent = txt; show('notice'); }
+$('noticeBtn').onclick = () => { hide('notice'); enterRoom(LOBBY); };
+$('noticeOut').onclick = () => logout();
+
+// card giocatore
+function openCard(uid){
+  const prof = S.profiles.get(uid); if (!prof) return;
+  closePanels(); S.cardUid = uid;
+  $('cardName').textContent = prof.name;
+  $('cardMotto').textContent = prof.motto ? '“'+prof.motto+'”' : 'Nessun motto';
+  $('cardRep').classList.toggle('hidden', uid === S.uid);
+  $('repTxt').value = '';
+  show('card');
+}
+$('repGo').onclick = async () => {
+  const uid = S.cardUid, prof = S.profiles.get(uid); if (!uid || !prof) return;
+  const ok = await sendReport('user_report', uid, $('repTxt').value.trim() || 'Nessun motivo', prof.name);
+  toast(ok ? 'Segnalazione inviata allo staff' : 'Aspetta qualche secondo prima di segnalare di nuovo');
+  if (ok) hide('card');
+};
+
+// navigatore
+let navTab = 'all', nrSize = 'S', nrFloor = FLOORS[0], nrWall = WALLS[0];
+function swatches(box, list, cur, onPick){
+  box.innerHTML = '';
+  list.forEach(c => { const i = document.createElement('i'); i.style.background = c; if (c===cur) i.classList.add('on');
+    i.onclick = () => { box.querySelectorAll('i').forEach(z=>z.classList.remove('on')); i.classList.add('on'); onPick(c); }; box.appendChild(i); });
+}
+swatches($('nrFloor'), FLOORS, nrFloor, c => nrFloor = c);
+swatches($('nrWall'), WALLS, nrWall, c => nrWall = c);
+$('nrSize').querySelectorAll('button').forEach(b => b.onclick = () => { $('nrSize').querySelectorAll('button').forEach(z=>z.classList.remove('on')); b.classList.add('on'); nrSize = b.dataset.v; });
+document.querySelectorAll('[data-nt]').forEach(b => b.onclick = () => { navTab = b.dataset.nt; renderNav(); });
+async function openNav(){ closePanels(); show('nav'); renderNav(); }
+async function renderNav(){
+  document.querySelectorAll('[data-nt]').forEach(b => b.classList.toggle('on', b.dataset.nt === navTab));
+  const list = $('navList'), form = $('navNew');
+  form.classList.toggle('hidden', navTab !== 'new'); list.classList.toggle('hidden', navTab === 'new');
+  if (navTab === 'new'){ $('nrErr').textContent=''; return; }
+  list.innerHTML = '<div class="mut">Caricamento…</div>';
+  const [rs, ps] = await Promise.all([get(ref(db,'rooms')), get(ref(db,'presence'))]);
+  const counts = {}; ps.forEach(r => { counts[r.key] = r.size; });
+  let rooms = []; rs.forEach(r => { rooms.push({id:r.key, ...r.val()}); });
+  if (navTab === 'mine') rooms = rooms.filter(r => r.owner === S.uid && r.id !== LOBBY);
+  rooms.sort((a,b) => (b.id===LOBBY) - (a.id===LOBBY) || (counts[b.id]||0) - (counts[a.id]||0) || b.created - a.created);
+  list.innerHTML = '';
+  if (!rooms.length){ list.innerHTML = '<div class="mut">'+(navTab==='mine' ? 'Non hai ancora stanze. Creane una!' : 'Nessuna stanza.')+'</div>'; return; }
+  for (const r of rooms.slice(0,100)){
+    const row = document.createElement('div'); row.className = 'room';
+    const sw = document.createElement('div'); sw.className='sw'; sw.style.background = `linear-gradient(135deg,${r.wall} 50%,${r.floor} 50%)`;
+    const nm = document.createElement('div'); nm.className='nm';
+    const bb = document.createElement('b'); bb.textContent = (r.id===LOBBY?'🏨 ':'')+r.name;
+    const sm = document.createElement('small'); sm.textContent = r.id===LOBBY ? 'Hall pubblica' : 'di '+r.ownerName;
+    nm.append(bb, sm);
+    const cnt = document.createElement('div'); cnt.className='cnt'; cnt.textContent = '● '+(counts[r.id]||0);
+    row.append(sw, nm, cnt);
+    if (navTab === 'mine'){
+      const del = document.createElement('button'); del.className='btn red'; del.textContent='🗑';
+      del.onclick = async ev => { ev.stopPropagation(); if (!confirm('Eliminare "'+r.name+'"?')) return;
+        const ok = await guardedWrite(() => update(ref(db), {[`rooms/${r.id}`]:null, [`presence/${r.id}`]:null, [`chat/${r.id}`]:null}), 'roomdel');
+        toast(ok ? 'Stanza eliminata' : 'Impossibile eliminare'); renderNav(); };
+      row.appendChild(del);
+    }
+    row.onclick = () => { hide('nav'); if (r.id !== S.roomId) enterRoom(r.id); };
+    list.appendChild(row);
+  }
+}
+$('nrGo').onclick = async () => {
+  const name = $('nrName').value.trim();
+  if (name.length < 3){ $('nrErr').textContent = 'Nome troppo corto'; return; }
+  $('nrGo').disabled = true; $('nrErr').textContent = '';
+  try{
+    let slot = null;
+    for (let i=0;i<3;i++){ const s = await get(ref(db,`rooms/${S.uid}_${i}`)); if (!s.exists()){ slot = `${S.uid}_${i}`; break; } }
+    if (!slot){ $('nrErr').textContent = 'Hai già 3 stanze (massimo).'; return; }
+    const [w,h] = {S:[6,6], M:[9,9], L:[13,11]}[nrSize];
+    const ok = await guardedWrite(() => update(ref(db), {
+      [`rooms/${slot}`]: { name, desc:'', owner:S.uid, ownerName:S.me.name, w, h, door:{x:0,y:1}, floor:nrFloor, wall:nrWall, created:serverTimestamp() },
+      [`rate/${S.uid}/room`]: serverTimestamp()
+    }), 'roomnew');
+    if (!ok){ $('nrErr').textContent = 'Non riuscito (aspetta 10 secondi tra una creazione e l\'altra).'; return; }
+    $('nrName').value = ''; hide('nav'); toast('Stanza costruita!'); enterRoom(slot);
+  } finally { $('nrGo').disabled = false; }
+};
+
+// guardaroba
+let wLook = null;
+function openWard(){
+  closePanels(); wLook = {...S.me.look}; $('wMotto').value = S.me.motto || '';
+  const upd = () => drawPreview($('wardPrev'), wLook);
+  swatches($('wSkin'), SKINS, wLook.skin, c => { wLook.skin=c; upd(); });
+  swatches($('wHair'), HAIRS, wLook.hair, c => { wLook.hair=c; upd(); });
+  swatches($('wShirt'), CLOTH, wLook.shirt, c => { wLook.shirt=c; upd(); });
+  swatches($('wPants'), CLOTH, wLook.pants, c => { wLook.pants=c; upd(); });
+  $('wStyle').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.v === wLook.hairStyle);
+    b.onclick = () => { wLook.hairStyle = +b.dataset.v; $('wStyle').querySelectorAll('button').forEach(z=>z.classList.toggle('on', z===b)); upd(); }; });
+  upd(); show('ward');
+}
+$('wSave').onclick = async () => {
+  const ok = await guardedWrite(() => update(ref(db,'users/'+S.uid), { look:wLook, motto:$('wMotto').value.trim().slice(0,40) }), 'look');
+  toast(ok ? 'Look salvato!' : 'Salvataggio non riuscito'); if (ok) hide('ward');
+};
+
+// barra
+$('bHall').onclick = () => { closePanels(); if (S.roomId !== LOBBY) enterRoom(LOBBY); };
+$('bNav').onclick = openNav;
+$('bWard').onclick = openWard;
+$('bSend').onclick = sendChat;
+$('bOut').onclick = () => logout();
+$('chatIn').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); e.stopPropagation(); });
+addEventListener('keydown', e => { if (e.key === 'Enter' && !$('bar').classList.contains('hidden') && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') $('chatIn').focus(); if (e.key === 'Escape') closePanels(); });
+
+/* ================= AUTH ================= */
+let authMode = 'login';
+document.querySelectorAll('#auth [data-t]').forEach(b => b.onclick = () => {
+  authMode = b.dataset.t;
+  document.querySelectorAll('#auth [data-t]').forEach(z => z.classList.toggle('on', z === b));
+  $('aGo').textContent = authMode === 'login' ? "Entra nell'hotel" : 'Crea account';
+  $('aErr').textContent = '';
+});
+const AUTH_ERR = {
+  'auth/invalid-credential':'Email o password errate', 'auth/wrong-password':'Password errata', 'auth/user-not-found':'Account inesistente',
+  'auth/email-already-in-use':'Email già registrata', 'auth/weak-password':'Password troppo debole (min 6)', 'auth/invalid-email':'Email non valida',
+  'auth/too-many-requests':'Troppi tentativi, riprova più tardi', 'auth/operation-not-allowed':'Login email non attivo su Firebase'
+};
+$('aGo').onclick = async () => {
+  const em = $('aEmail').value.trim(), pw = $('aPass').value;
+  $('aErr').textContent = ''; $('aGo').disabled = true;
+  try{
+    if (authMode === 'login') await signInWithEmailAndPassword(auth, em, pw);
+    else await createUserWithEmailAndPassword(auth, em, pw);
+  } catch(e){ $('aErr').textContent = AUTH_ERR[e.code] || 'Errore: '+(e.code||e.message); }
+  finally { $('aGo').disabled = false; }
+};
+$('aPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('aGo').click(); });
+
+let nickLook = randomLook();
+$('nickRoll').onclick = () => { nickLook = randomLook(); drawPreview($('nickPrev'), nickLook); };
+$('nickOut').onclick = () => logout();
+$('nickGo').onclick = async () => {
+  const name = $('nickIn').value.trim();
+  if (!/^[A-Za-z0-9_]{3,16}$/.test(name)){ $('nickErr').textContent = '3-16 caratteri: lettere, numeri o _'; return; }
+  const lower = name.toLowerCase();
+  $('nickGo').disabled = true; $('nickErr').textContent = '';
+  try{
+    if ((await get(ref(db,'usernames/'+lower))).exists()){ $('nickErr').textContent = 'Nome già preso'; return; }
+    await update(ref(db), {
+      ['usernames/'+lower]: S.uid,
+      ['users/'+S.uid]: { name, look:nickLook, motto:'Nuovo ospite', created:serverTimestamp() }
+    });
+    const ps = await get(ref(db,'users/'+S.uid));
+    hide('nick'); startSession(ps.val());
+  } catch(e){ $('nickErr').textContent = 'Nome non disponibile'; }
+  finally { $('nickGo').disabled = false; }
+};
+
+async function startSession(profile){
+  S.me = profile; S.profiles.set(S.uid, profile);
+  const ban = await get(ref(db,'bans/'+S.uid));
+  if (ban.exists()){ showBan(ban.val()); return; }
+  S.sess.push(onValue(ref(db,'bans/'+S.uid), s => { if (s.exists()) showBan(s.val()); }));
+  const w = await get(ref(db,'wallets/'+S.uid));
+  if (!w.exists()) await guardedWrite(() => set(ref(db,'wallets/'+S.uid), { coins:100, created:serverTimestamp() }), 'wallet');
+  S.sess.push(onValue(ref(db,'wallets/'+S.uid), s => { _wallet.v = s.val()?.coins ?? 0; $('coins').textContent = _wallet.v.toLocaleString('it-IT'); }));
+  S.sess.push(onValue(ref(db,'users/'+S.uid), s => { if (s.exists()){ S.me = s.val(); S.profiles.set(S.uid, S.me); } }));
+  S.sess.push(onValue(ref(db,'.info/connected'), s => $('net').classList.toggle('off', s.val() !== true)));
+  ['auth','nick','notice','banned'].forEach(hide);
+  show('hud'); show('bar');
+  enterRoom(LOBBY);
+}
+async function showBan(b){
+  S.banned = true;
+  await leaveRoom();
+  $('banReason').textContent = b && b.reason ? 'Motivo: '+b.reason : '';
+  ['hud','bar','nav','ward','card','notice'].forEach(hide);
+  show('banned');
+}
+$('banOut').onclick = () => logout();
+async function endSession(){
+  await leaveRoom();
+  S.sess.forEach(u => u()); S.sess = [];
+  for (const [,u] of S.profSubs) u(); S.profSubs.clear(); S.profiles.clear();
+  S.me = null; S.banned = false;
+  ['hud','bar','nav','ward','card','notice','banned','nick'].forEach(hide);
+}
+async function logout(){ await endSession(); await signOut(auth); }
+
+onAuthStateChanged(auth, async user => {
+  await endSession();
+  if (!user){ S.uid = null; show('auth'); return; }
+  S.uid = user.uid; hide('auth');
+  const ps = await get(ref(db,'users/'+user.uid));
+  if (!ps.exists()){ nickLook = randomLook(); drawPreview($('nickPrev'), nickLook); show('nick'); return; }
+  startSession(ps.val());
+});
+</script>
+</body>
+</html>
