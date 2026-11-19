@@ -59,6 +59,7 @@ pre{background:#0d0b20;border:2px solid var(--line);padding:6px;white-space:pre-
 .urow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px}
 .urow .nm{font-size:22px;min-width:120px}
 .urow select.f{width:auto;padding:2px 6px}
+.urow .coins .btn{padding:2px 8px;font-size:12px}
 .new{color:var(--ok);font-family:'Silkscreen',monospace;font-size:10px}
 #toast{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;z-index:9}
 #toast div{background:var(--panel);border:3px solid var(--acc2);padding:6px 12px;box-shadow:4px 4px 0 #07051a}
@@ -122,7 +123,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const fmt = t => t ? new Date(t).toLocaleString('it-IT') : '—';
 function toast(m){ const d=document.createElement('div'); d.textContent=m; $('toast').appendChild(d); setTimeout(()=>d.remove(),3000); }
 
-const A = { uid:null, name:'', role:'user', view:'dash', trapPath:null, reports:[], traps:[], bans:{}, subs:[], names:new Map(),
+const A = { uid:null, name:'', role:'user', view:'dash', trapPath:null, reports:[], traps:[], bans:{}, wallets:{}, subs:[], names:new Map(),
             owner:null, roles:{}, admins:{}, users:{}, seen:null, filter:'all', q:'' };
 
 /* ===== RUOLI =====
@@ -191,11 +192,24 @@ async function pardon(uid){
 async function closeReport(id){
   await update(ref(db), { [`reports/${id}`]: null, ...(await audit('report_close', id)) });
 }
+// n: "+100" / "-50" aggiungono o tolgono, "=1000" imposta il saldo esatto
 async function addCoins(uid, n){
-  n = Math.trunc(Number(n)); if (!n) return;
-  const res = await runTransaction(ref(db,`wallets/${uid}/coins`), c => Math.max(0, (c||0) + n));
-  await update(ref(db), await audit('coins', uid, (n>0?'+':'')+n));
-  toast('Saldo: '+res.snapshot.val()); render();
+  const txt = String(n ?? '').trim().replace(/\s/g, '');
+  const setMode = txt.startsWith('=');
+  const v = Math.trunc(Number(setMode ? txt.slice(1) : txt));
+  if (!Number.isFinite(v) || (!v && !setMode) || v < 0 && setMode){ toast('Importo non valido'); return; }
+  try{
+    const res = await runTransaction(ref(db,`wallets/${uid}/coins`), c => setMode ? v : Math.max(0, (c||0) + v));
+    await update(ref(db), await audit('coins', uid, setMode ? '='+v : (v>0?'+':'')+v));
+    toast('💰 '+await nameOf(uid)+': '+res.snapshot.val()+' monete');
+  }catch(e){ toast('Errore monete: '+(e.code||e.message)+' — hai pubblicato le regole nuove?'); }
+  render();
+}
+async function editCoins(uid){
+  const cur = A.wallets[uid]?.coins ?? 0;
+  const t = prompt(`Monete di ${await nameOf(uid)}: ${cur}\n\nScrivi +500 per dare, -200 per togliere, =1000 per impostare il saldo.`, '+100');
+  if (t === null) return;
+  addCoins(uid, t);
 }
 async function deleteRoom(id){
   if (!confirm('Eliminare la stanza '+id+'? Tutti i presenti verranno espulsi.')) return;
@@ -231,7 +245,7 @@ async function setRole(uid, role){
     toast(`${nm} ora è ${ROLES[role].label}`);
   }catch(e){ toast('Errore: '+e.message); render(); }
 }
-window.F = { setRole, ban, unban, pardon, closeReport, addCoins, deleteRoom, purgeChat, initHall };
+window.F = { setRole, ban, unban, pardon, closeReport, addCoins, editCoins, deleteRoom, purgeChat, initHall };
 
 /* ===== VISTE ===== */
 const V = {};
@@ -257,6 +271,7 @@ V.dash = async () => {
     <div class="px stat"><b>${bs.size}</b>bannati</div>
     <div class="px stat"><b>${newToday()}</b>iscritti nelle ultime 24h</div>
     <div class="px stat"><b>${Object.keys(A.users).filter(u => roleOf(u)!=='user').length}</b>staff e vip</div>
+    <div class="px stat"><b>${Object.values(A.wallets).reduce((t, w) => t + (w?.coins || 0), 0).toLocaleString('it-IT')}</b>monete in circolazione</div>
   </div>`;
 };
 const DAY = 864e5;
@@ -277,6 +292,8 @@ function userRow(uid){
     ${A.bans[uid] ? '<span class="tag t-client_tamper">BANNATO</span>' : ''}
     ${fresh ? '<span class="new">NUOVO</span>' : ''}
     <span class="mut">iscritto ${fmt(u.created)}</span>
+    ${isAdmin() ? `<span class="row coins"><b style="color:var(--gold)">🪙 ${(A.wallets[uid]?.coins ?? 0).toLocaleString('it-IT')}</b>
+      <button class="btn" onclick="F.addCoins('${esc(uid)}','+100')">+100</button><button class="btn" onclick="F.addCoins('${esc(uid)}','-100')">−100</button><button class="btn gold" onclick="F.editCoins('${esc(uid)}')">Modifica</button></span>` : ''}
     <span style="margin-left:auto" class="row">${roleSelect(uid)}
     ${isAdmin() && r !== 'creator' && uid !== A.uid && !A.bans[uid] && (A.role==='creator' || r!=='admin') ? `<button class="btn red" onclick="F.ban('${esc(uid)}')">Banna</button>` : ''}</span>
   </div>`;
@@ -349,7 +366,7 @@ V.bans = async () => {
   return '<h2>Ban</h2><div class="list">'+items.join('')+'</div>';
 };
 V.players = async () => `<h2>Giocatori</h2>
-  <div class="row" style="margin-bottom:12px"><input id="pq" class="f" placeholder="Nome esatto del giocatore"><button class="btn cyan" id="pGo">Cerca</button></div>
+  <div class="row" style="margin-bottom:12px"><input id="pq" class="f" placeholder="Nome (anche parziale)"><button class="btn cyan" id="pGo">Cerca</button></div>
   <div id="pRes"></div>`;
 V.rooms = async () => {
   const [rs, ps] = await Promise.all([get(ref(db,'rooms')), get(ref(db,'presence'))]);
@@ -373,9 +390,11 @@ V.audit = async () => {
 async function searchPlayer(){
   const q = $('pq').value.trim().toLowerCase(); const box = $('pRes');
   if (!q) return;
-  const u = await get(ref(db,'usernames/'+q));
-  if (!u.exists()){ box.innerHTML = '<div class="mut">Nessun giocatore con questo nome.</div>'; return; }
-  const uid = u.val();
+  const found = Object.keys(A.users).filter(u => String(A.users[u].name||'').toLowerCase().includes(q));
+  if (!found.length){ box.innerHTML = '<div class="mut">Nessun giocatore trovato.</div>'; return; }
+  const exact = found.find(u => String(A.users[u].name).toLowerCase() === q);
+  if (!exact && found.length > 1){ box.innerHTML = '<div class="list">'+found.slice(0,50).map(userRow).join('')+'</div>'; return; }
+  const uid = exact || found[0];
   const [p, w, r, b, inv] = await Promise.all([get(ref(db,'users/'+uid)), get(ref(db,'wallets/'+uid)), get(ref(db,`players/${uid}/room`)), get(ref(db,'bans/'+uid)), get(ref(db,'inventory/'+uid))]);
   const pr = p.val() || {};
   box.innerHTML = `<div class="px item">
@@ -383,7 +402,7 @@ async function searchPlayer(){
     <div class="mut">UID: ${esc(uid)}</div>
     <div>Motto: ${esc(pr.motto||'—')} · Iscritto: ${fmt(pr.created)} · Ultima stanza: ${esc(r.val()||'—')}</div>
     <div>Monete: <b style="color:var(--gold)">${w.val()?.coins ?? 0}</b> · Oggetti: ${inv.exists() ? inv.size : 0}</div>
-    <div class="row"><input id="cAmt" class="f" type="number" placeholder="+100 o -50"><button class="btn gold" id="cGo">Applica monete</button></div>
+    <div class="row"><input id="cAmt" class="f" placeholder="+100, -50 oppure =1000"><button class="btn gold" id="cGo">Applica monete</button></div>
     <div class="acts">${b.exists() ? `<button class="btn cyan" onclick="F.unban('${esc(uid)}')">Rimuovi ban</button>` : `<button class="btn red" onclick="F.ban('${esc(uid)}')">Banna</button>`}</div>
   </div>`;
   $('cGo').onclick = () => addCoins(uid, $('cAmt').value).then(searchPlayer);
@@ -491,6 +510,7 @@ onAuthStateChanged(auth, async user => {
   }));
   const live = v => !first && v.includes(A.view);
   if (isAdmin()) A.subs.push(onValue(ref(db,'bans'), s => { A.bans = s.val() || {}; if (live(['bans','users','staff'])) render(); }));
+  if (isAdmin()) A.subs.push(onValue(ref(db,'wallets'), s => { A.wallets = s.val() || {}; if (live(['users','staff','dash'])) render(); }, e => toast('Non riesco a leggere le monete: pubblica le regole nuove.')));
   A.subs.push(onValue(ref(db,'staff/owner'), s => { A.owner = s.val(); }));
   A.subs.push(onValue(ref(db,'roles'), s => { A.roles = s.val() || {}; if (live(['users','staff','dash'])) render(); }));
   A.subs.push(onValue(ref(db,'admins'), s => {
