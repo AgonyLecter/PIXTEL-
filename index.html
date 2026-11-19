@@ -1495,7 +1495,7 @@ Object.assign(MOBIX, {
   round_window:{ name:'Oblò', cat:'muro', price:13, wall:true, z:60, tw:24, th:24, desc:'Una finestra tonda sul mare.',
     tex(T){ T.E(12, 12, 11.5, 11.5, '#c9a227'); T.E(12, 12, 9, 9, '#5fb8e8', { raw:true }); for (let y = 12; y < 21; y++) for (let x = 3; x < 21; x++) if ((x - 12)**2 + (y - 12)**2 < 80) T.P(x, y, y < 14 ? [70,150,210] : [40,110,180]); T.E(8, 8, 2, 1, '#ffffff', { raw:true }); }}
 });
-MOBIX.piano.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 2, d:0 } : { x: it.x + 2, y: it.y + 1, d:6 };
+MOBIX.piano.spot = (it, r) => r === 0 ? [{ x: it.x + 1, y: it.y + 2, d:0 }, { x: it.x, y: it.y + 2, d:0 }] : [{ x: it.x + 2, y: it.y + 1, d:6 }, { x: it.x + 2, y: it.y, d:6 }];
 ['arcade','stove','fridge','tv','jukebox','kitchen_sink','speaker'].forEach(k => { if (MOBIX[k]) MOBIX[k].spot = (it, r) => r === 0 ? { x: it.x, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y, d:6 }; });
 MOBIX.flat_tv.spot = MOBIX.gaming_pc.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y + 1, d:6 };
 MOBIX.desk_pc.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y + 1, d:6 };
@@ -2568,7 +2568,7 @@ function updateTip(){
     tip.textContent = h.prof.name; const rt = roleEl(h.uid); if (rt) tip.prepend(rt);
     tip.style.left = (h.fx*PS)+'px'; tip.style.top = ((h.fy-66)*PS)+'px';
   } else {
-    const def = MOBIX[h.it.type]; tip.textContent = (def?.name || '?') + (def?.states ? ' · doppio tocco per usarlo' : '');
+    const def = MOBIX[h.it.type]; tip.textContent = (def?.name || '?') + (editing() ? '' : (USE_VERB[h.it.type] || def?.states || def?.seat) ? ' · tocca per usarlo' : '');
     tip.style.left = (S.mouse.x)+'px'; tip.style.top = (S.mouse.y - 12)+'px';
   }
   tip.classList.remove('hidden');
@@ -2638,10 +2638,8 @@ function handleClick(lx, ly, ptype){
   if (h && h.kind === 'item'){
     const def = MOBIX[h.it.type];
     if (editing()){ selectItem(h.iid); return; }
-    selectItem(null);
-    if (def.seat){ const t = tileAt(lx, ly); const tgt = t && seatAt(t.x, t.y) === h.it ? t : { x:h.it.x, y:h.it.y }; walkTo(tgt.x, tgt.y); return; }
-    if (def.rug){ const t = tileAt(lx, ly); if (t) walkTo(t.x, t.y); if (def.states) useItem(h.iid); return; }
-    if (def.spot || def.states) { interact(h.iid); return; }
+    if (def.rug && !def.states){ selectItem(null); const t = tileAt(lx, ly); if (t) walkTo(t.x, t.y); return; }
+    selectItem(h.iid); if (S.sel){ const t = tileAt(lx, ly); S.sel.tile = t && def.seat && seatAt(t.x, t.y) === h.it ? t : null; }
     return;
   }
   selectItem(null);
@@ -2880,13 +2878,17 @@ async function useItem(iid){
 const SPOTS = {
   piano:'piano', arcade:'arcade', desk_pc:'type', gaming_pc:'type', stove:'cook', kitchen_sink:'cook', fireplace:'warm', jukebox:'touch', speaker:'touch', fridge:'touch', tv:'touch', flat_tv:'touch', gaming_pc:'type', drums:'arcade'
 };
+const USE_VERB = { piano:'🎹 Suona', arcade:'🕹 Gioca', desk_pc:'💻 Usa il PC', gaming_pc:'🎮 Gioca al PC', stove:'🍳 Cucina', kitchen_sink:'🚰 Lava i piatti', fireplace:'🔥 Scaldati' };
+const SPOT_ONLY = { piano:1 };
 function itemTiles(it){ return footprint(it); }
 function dirToward(fx, fy, tx, ty){ const dx = Math.sign(tx - fx), dy = Math.sign(ty - fy); return DIR_INDEX[dx + ',' + dy] ?? 3; }
 function interact(iid){
   const it = S.items.get(iid), me = S.players.get(S.uid); if (!it || !me) return;
   const def = MOBIX[it.type], act = SPOTS[it.type] || 'touch';
-  let spot = def.spot ? def.spot(it, normR(def, it.r)) : null;
-  const ok = (x, y) => x >= 0 && y >= 0 && x < S.room.w && y < S.room.h && !S.blocked.has(x+','+y) && ![...S.players].some(([u, p]) => u !== S.uid && p.x === x && p.y === y);
+  const ok = (x, y) => x >= 0 && y >= 0 && x < S.room.w && y < S.room.h && !S.blocked.has(x+','+y) && !seatAt(x, y) && ![...S.players].some(([u, p]) => u !== S.uid && p.x === x && p.y === y);
+  let spots = def.spot ? [].concat(def.spot(it, normR(def, it.r))) : [];
+  let spot = spots.find(sp => sp.x === me.x && sp.y === me.y) || spots.find(sp => ok(sp.x, sp.y)) || null;
+  if (SPOT_ONLY[it.type] && !spot){ toast('Davanti al pianoforte non c\'è spazio per la panca: sposta i mobili che lo bloccano'); return; }
   const tiles = itemTiles(it), cx = tiles.reduce((t, [x]) => t + x, 0)/tiles.length, cy = tiles.reduce((t, [, y]) => t + y, 0)/tiles.length;
   if (!spot || !ok(spot.x, spot.y)){
     const cand = [];
@@ -2926,6 +2928,16 @@ function renderIbar(){
     const it = S.items.get(S.sel.iid); if (!it){ hide('ibar'); return; }
     const def = MOBIX[it.type];
     lbl(def.name);
+    if (!editing()){
+      const iid = S.sel.iid, verb = USE_VERB[it.type];
+      let any = false;
+      if (def.seat){ any = true; mk('🪑 Siediti', 'go', () => { const t = S.sel?.tile || { x:it.x, y:it.y }; selectItem(null); walkTo(t.x, t.y); }); }
+      if (verb){ any = true; mk(verb, 'go', () => { selectItem(null); interact(iid); }); }
+      else if (def.states){ any = true; const lab = def.use ? def.use[(it.s|0) ? 1 : 0] : 'Usa'; mk('⚡ ' + lab, 'go', () => { selectItem(null); interact(iid); }); }
+      if (!any) lbl('Solo decorativo', 'h');
+      mk('✕', '', () => selectItem(null));
+      show('ibar'); return;
+    }
     if (def.states){ const lab = def.use ? def.use[(it.s|0) ? 1 : 0] : 'Usa'; mk('⚡ ' + lab, 'go', () => useItem(S.sel.iid)); }
     if (editing()){
       if (rotsOf(def) > 1) mk('⟳ Ruota', '', () => rotateItem(S.sel.iid));
@@ -2962,7 +2974,7 @@ function shopDetail(){
   const pv = $('shopPrev'), src = itemPreview(id, 128, 0);
   pv.width = 128; pv.height = 128; pv.getContext('2d').drawImage(src, 0, 0);
   $('shopName').textContent = def.name;
-  $('shopDesc').textContent = def.desc + (def.seat ? ' · Ci si può sedere.' : '') + (def.wall ? ' · Va appeso al muro.' : '') + (def.rug ? ' · Si può calpestare.' : '') + (def.states ? ' · Interattivo: doppio tocco per usarlo.' : '') + (def.frames && !def.states ? ' · Animato.' : '');
+  $('shopDesc').textContent = def.desc + (def.seat ? ' · Ci si può sedere.' : '') + (def.wall ? ' · Va appeso al muro.' : '') + (def.rug ? ' · Si può calpestare.' : '') + (def.states ? ' · Interattivo: toccalo nella stanza per usarlo.' : '') + (def.frames && !def.states ? ' · Animato.' : '');
   $('shopPrice').textContent = priceOf(id);
   const q = $('shopQty'); q.innerHTML = '';
   q.classList.toggle('hidden', !S.admin);
