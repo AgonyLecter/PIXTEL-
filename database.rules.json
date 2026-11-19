@@ -288,6 +288,9 @@
         "wp": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0"
         },
+        "am": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3 && newData.val() % 1 === 0"
+        },
         "$other": {
           ".validate": "false"
         }
