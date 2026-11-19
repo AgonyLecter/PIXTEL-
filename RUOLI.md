@@ -52,7 +52,8 @@ Gli arredi di PIXTEL si chiamano **Mobix**. Si comprano nello **Shop** (icona de
 - **Prezzi**: stanno in `catalog/{mobix}/price`. Il gioco li scrive da solo al primo accesso di un Admin; finché non ci sono, gli utenti normali non possono comprare.
 - **Impostazioni stanza** (⚙ accanto al nome): nome, colori e motivi di pavimento (piastrelle, parquet, scacchi, moquette, pietra, erba) e pareti (liscia, righe, mattoni, boiserie, pois, legno). Le può cambiare il proprietario o lo staff.
 - **Mobix interattivi**: doppio tocco (o il pulsante ⚡ nella barra) per accendere/spegnere lampade, TV, camino, PC, juke-box, pista da ballo, zucca, candele, insegna neon, aprire frigo e bara. Lo stato è condiviso: tutti nella stanza lo vedono. Può usarli chiunque sia nella stanza.
-- **Guardaroba**: acconciature, occhi, accessori, maglie, gambe, scarpe, cappelli e colori, più stili pronti (Cute, Horror, Pro, Street, Party, Angelo). Per ora sono tutti gratis; in futuro i capi speciali potranno diventare oggetti da comprare.
+- **Personaggi**: animali antropomorfi (cavallo, gatto, cane, orso, coniglio, volpe, maiale, cervo). Nel guardaroba si scelgono specie, colore del pelo e del muso, criniera/ciuffo, occhi, vestiti, scarpe, cappelli e occhiali, più stili pronti (Noir, Cute, Horror, Pro, Street, Party, Angelo). Per ora tutto gratis.
+- **Luce della stanza**: giorno, tramonto, sera o notte (⚙ della stanza).
 
 ### Dati nel database
 

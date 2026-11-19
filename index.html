@@ -56,7 +56,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 .logo span{color:var(--gold)}
 .logo small{display:block;font-size:13px;letter-spacing:1px;color:#cfe8f5;margin-top:6px;text-shadow:2px 2px 0 #000}
 .logo.bad{color:#ff8f8f;font-size:30px}
-#nickPrev,#wardPrev{width:80px;height:200px;align-self:center;background:radial-gradient(ellipse at 50% 88%,#c9c3b3 0 18%,transparent 19%),linear-gradient(#dcd7ca,#cfc9bb);border:2px solid var(--edge);border-radius:6px;padding:0 0}
+#nickPrev,#wardPrev{width:78px;height:204px;align-self:center;background:radial-gradient(ellipse at 50% 88%,#c9c3b3 0 18%,transparent 19%),linear-gradient(#dcd7ca,#cfc9bb);border:2px solid var(--edge);border-radius:6px;padding:0 0}
 
 /* HUD */
 #hud{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:10;gap:8px}
@@ -138,7 +138,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 #wOpts{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;max-height:230px;overflow:auto;padding:2px}
 #wOpts .cell canvas{width:64px;height:64px}
 #wOpts .cell .p{font-family:'Pixelify Sans',sans-serif;font-size:11px;text-align:center;line-height:1.1}
-@media (max-width:600px){ #wTop{flex-direction:column} #wLeft{flex-direction:row;align-items:center;justify-content:center} #wardPrev{width:64px;height:160px} #wOpts{max-height:170px} }
+@media (max-width:600px){ #wTop{flex-direction:column} #wLeft{flex-direction:row;align-items:center;justify-content:center} #wardPrev{width:52px;height:136px} #wOpts{max-height:170px} }
 
 /* zaino */
 #inv{width:min(520px,94vw)}
@@ -153,7 +153,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 /* card giocatore */
 #card{width:min(300px,90vw)}
 #cardTop{display:flex;gap:10px;align-items:center}
-#cardPrev{width:64px;height:160px;flex:none;border:2px solid #000;border-radius:6px;background:linear-gradient(#dcd7ca,#cfc9bb)}
+#cardPrev{width:52px;height:136px;flex:none;border:2px solid #000;border-radius:6px;background:linear-gradient(#dcd7ca,#cfc9bb)}
 #cardName{font-weight:700;font-size:19px}
 
 /* bolle chat */
@@ -198,7 +198,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
   <div class="box win">
     <div class="hd"><span>CHECK-IN</span></div>
     <div class="bd">
-      <canvas id="nickPrev" class="pxc" width="44" height="112"></canvas>
+      <canvas id="nickPrev" class="pxc" width="26" height="68"></canvas>
       <button id="nickRoll" class="btn">🎲 Cambia look</button>
       <input id="nickIn" class="f" maxlength="16" placeholder="Nome (3-16: lettere, numeri, _)">
       <button id="nickGo" class="btn go">Fai il check-in</button>
@@ -384,7 +384,9 @@ const DIR_INDEX = {'0,-1':0,'1,-1':1,'1,0':2,'1,1':3,'0,1':4,'-1,1':5,'-1,0':6,'
 // direzione -> vista dello sprite (f=fronte, fs=tre quarti, bs=tre quarti di spalle, b=spalle) e specchio
 const VIEW = [ {v:'bs',m:false},{v:'fs',m:false},{v:'fs',m:false},{v:'fs',m:false},
                {v:'fs',m:true},{v:'fs',m:true},{v:'bs',m:true},{v:'bs',m:true} ];
-const SKINS  = ['#ffe3c9','#f7cfa6','#e8b282','#c98c55','#9a6337','#6a4126','#a8d08d','#e9e6f2','#8fb4ea','#b48ad6'];
+const SKINS  = ['#8a5a3a','#5a3e2e','#c88a4a','#d06a2a','#b89a6a','#e8e2da','#7a7c84','#2e2a30','#e8a8a0','#9a6a42','#d8c0a0','#4a4a5a'];
+const FUR2   = ['#e8dcc8','#f8f2ec','#d8c0a0','#a8866a','#f8c8c0','#c8c0b8','#5a4a40','#2a2428'];
+const EYE_COLS = ['#3a2a20','#4a7aa8','#5a8a4a','#c89a3a','#8a3a3a','#6a4a8a','#2a2a30'];
 const HAIRS  = ['#2b1d16','#5e3a22','#a8642e','#e9c068','#e8e4dc','#e8558e','#45b9e8','#8a62d6','#55c46a','#c9372c','#1f2a44','#ff9a3c'];
 const CLOTH  = ['#e8558e','#ffb3cf','#45b9e8','#8a62d6','#f2c230','#55c46a','#ef7a3a','#f4f2ec','#3a3c4c','#16151c','#2f5fc4','#c9372c','#3d8b4a','#7a4f2a','#a9adb5','#6b2b7a'];
 const FLOORS = ['#8a6a4a','#a88a64','#6e6a66','#b8a88c','#5a6a7a','#7a4a42','#5a6a48','#3a3a44','#9a7a86','#2a2830'];
@@ -394,26 +396,27 @@ const FLOOR_PAT = ['Piastrelle','Parquet','Scacchi','Moquette','Pietra','Erba'];
 const WALL_PAT  = ['Liscia','Righe','Mattoni','Boiserie','Pois','Legno'];
 
 /* guardaroba */
-const HAIR_STYLES = ['Corti','Lunghi','Cresta','Rasati','Codini','Caschetto','Spettinati','Chignon'];
+const HAIR_STYLES = ['Nessuno','Ciuffo','Lunghi','Cresta'];
 const TOPS    = { coat:'Cappotto', tee:'T-shirt', long:'Maglia', hoodie:'Felpa', suit:'Giacca e cravatta', sweater:'Maglione cuore', tank:'Canotta', dress:'Vestito', bones:'Scheletro' };
 const BOTTOMS = { jeans:'Jeans', formal:'Eleganti', shorts:'Pantaloncini', skirt:'Gonna' };
 const SHOES   = { sneakers:'Sneakers', boots:'Stivali', formal:'Classiche', slippers:'Pantofole' };
 const HATS    = { none:'Niente', cap:'Cappellino', beanie:'Berretto', tophat:'Cilindro', witch:'Strega', catears:'Orecchie gatto', bunny:'Orecchie coniglio', horns:'Corna', halo:'Aureola', crown:'Corona', phones:'Cuffie' };
-const ACCS    = { none:'Niente', glasses:'Occhiali', shades:'Occhiali da sole', patch:'Benda', stitch:'Cicatrice', bandaid:'Cerotto', blush:'Guance rosa' };
+const ACCS    = { none:'Niente', glasses:'Occhiali', shades:'Occhiali da sole' };
 const EYES    = ['Normali','Dolci','Felici','Assonnati','Arrabbiati','Zombie'];
 const PRESETS = {
-  cute:   { name:'🎀 Cute',   look:{ skin:'#ffe3c9', hair:'#ffb3cf', hairStyle:4, shirt:'#ffb3cf', pants:'#f4f2ec', top:'sweater', bottom:'skirt', shoes:'slippers', shoeC:'#f4f2ec', hat:'catears', hatC:'#ffb3cf', acc:'blush', eyes:1, c2:'#e8558e' } },
-  horror: { name:'💀 Horror', look:{ skin:'#a8d08d', hair:'#16151c', hairStyle:6, shirt:'#16151c', pants:'#3a3c4c', top:'bones', bottom:'jeans', shoes:'boots', shoeC:'#16151c', hat:'horns', hatC:'#c9372c', acc:'stitch', eyes:5, c2:'#c9372c' } },
-  pro:    { name:'💼 Pro',    look:{ skin:'#f7cfa6', hair:'#2b1d16', hairStyle:0, shirt:'#3a3c4c', pants:'#3a3c4c', top:'suit', bottom:'formal', shoes:'formal', shoeC:'#16151c', hat:'none', hatC:'#3a3c4c', acc:'glasses', eyes:0, c2:'#c9372c' } },
-  street: { name:'🧢 Street', look:{ skin:'#9a6337', hair:'#16151c', hairStyle:3, shirt:'#f2c230', pants:'#2f5fc4', top:'hoodie', bottom:'jeans', shoes:'sneakers', shoeC:'#f4f2ec', hat:'cap', hatC:'#c9372c', acc:'shades', eyes:0, c2:'#f4f2ec' } },
-  party:  { name:'🎉 Party',  look:{ skin:'#e8b282', hair:'#8a62d6', hairStyle:7, shirt:'#8a62d6', pants:'#16151c', top:'dress', bottom:'skirt', shoes:'boots', shoeC:'#e8558e', hat:'crown', hatC:'#f2c230', acc:'none', eyes:2, c2:'#f2c230' } },
-  angel:  { name:'😇 Angelo', look:{ skin:'#ffe3c9', hair:'#e9c068', hairStyle:5, shirt:'#f4f2ec', pants:'#f4f2ec', top:'long', bottom:'formal', shoes:'sneakers', shoeC:'#f4f2ec', hat:'halo', hatC:'#f2c230', acc:'none', eyes:1, c2:'#f2c230' } }
+  noir:   { name:'🐴 Noir',   look:{ sp:'horse', skin:'#8a5a3a', fur2:'#d8c0a0', hair:'#2a1c16', hairStyle:0, eyeC:'#3a2a20', shirt:'#4a6a8a', pants:'#3a3c4c', top:'coat', bottom:'jeans', shoes:'boots', shoeC:'#2a2020', hat:'none', hatC:'#3a3c4c', acc:'none', eyes:0, c2:'#c9a227' } },
+  cute:   { name:'🐰 Cute',   look:{ sp:'rabbit', skin:'#e8e2da', fur2:'#f8f2ec', hair:'#c8c0b8', hairStyle:1, eyeC:'#6a4a8a', shirt:'#d98aa8', pants:'#f4f2ec', top:'sweater', bottom:'skirt', shoes:'slippers', shoeC:'#f4f2ec', hat:'none', hatC:'#d98aa8', acc:'none', eyes:0, c2:'#f4f2ec' } },
+  horror: { name:'🐻 Horror', look:{ sp:'bear', skin:'#2e2a30', fur2:'#5a4a40', hair:'#16151c', hairStyle:3, eyeC:'#8a3a3a', shirt:'#16151c', pants:'#3a3c4c', top:'bones', bottom:'jeans', shoes:'boots', shoeC:'#16151c', hat:'horns', hatC:'#a83a3a', acc:'none', eyes:4, c2:'#a83a3a' } },
+  pro:    { name:'🐶 Pro',    look:{ sp:'dog', skin:'#b89a6a', fur2:'#f0e8d8', hair:'#6a4a2a', hairStyle:0, eyeC:'#3a2a20', shirt:'#3a3c4c', pants:'#3a3c4c', top:'suit', bottom:'formal', shoes:'formal', shoeC:'#16151c', hat:'none', hatC:'#3a3c4c', acc:'glasses', eyes:0, c2:'#a83a3a' } },
+  street: { name:'🦊 Street', look:{ sp:'fox', skin:'#d06a2a', fur2:'#f4ece0', hair:'#a84a1a', hairStyle:3, eyeC:'#c89a3a', shirt:'#d0a040', pants:'#3a4a6a', top:'hoodie', bottom:'jeans', shoes:'sneakers', shoeC:'#e8e4dc', hat:'cap', hatC:'#a83a3a', acc:'shades', eyes:0, c2:'#e8e4dc' } },
+  party:  { name:'🐱 Party',  look:{ sp:'cat', skin:'#c88a4a', fur2:'#f0e0c8', hair:'#8a5a2a', hairStyle:1, eyeC:'#5a8a4a', shirt:'#6a4a7a', pants:'#2a2834', top:'dress', bottom:'skirt', shoes:'boots', shoeC:'#3a2a3a', hat:'crown', hatC:'#c9a227', acc:'none', eyes:0, c2:'#c9a227' } },
+  angel:  { name:'🦌 Angelo', look:{ sp:'deer', skin:'#9a6a42', fur2:'#e8dcc8', hair:'#5a3a22', hairStyle:0, eyeC:'#3a2a20', shirt:'#e8e4dc', pants:'#e8e4dc', top:'long', bottom:'formal', shoes:'sneakers', shoeC:'#e8e4dc', hat:'halo', hatC:'#c9a227', acc:'none', eyes:0, c2:'#c9a227' } }
 };
 function normLook(l){
-  const d = { skin:'#f7cfa6', hair:'#5e3a22', hairStyle:0, shirt:'#45b9e8', pants:'#3a3c4c', top:'tee', bottom:'jeans', shoes:'sneakers', shoeC:'#f4f2ec', hat:'none', hatC:'#e8558e', acc:'none', eyes:0, c2:'#f4f2ec' };
+  const d = { sp:'cat', skin:'#c88a4a', fur2:'#f0e0c8', eyeC:'#3a2a20', hair:'#5e3a22', hairStyle:0, shirt:'#4a6a8a', pants:'#3a3c4c', top:'tee', bottom:'jeans', shoes:'sneakers', shoeC:'#e8e4dc', hat:'none', hatC:'#a83a3a', acc:'none', eyes:0, c2:'#e8e4dc' };
   const o = { ...d, ...(l || {}) };
   if (!TOPS[o.top]) o.top = 'tee'; if (!BOTTOMS[o.bottom]) o.bottom = 'jeans'; if (!SHOES[o.shoes]) o.shoes = 'sneakers';
-  if (!HATS[o.hat]) o.hat = 'none'; if (!ACCS[o.acc]) o.acc = 'none';
+  if (!HATS[o.hat]) o.hat = 'none'; if (!ACCS[o.acc]) o.acc = 'none'; if (!AV6.HEADS[o.sp]) o.sp = 'cat';
   o.hairStyle = Math.max(0, Math.min(HAIR_STYLES.length - 1, o.hairStyle|0)); o.eyes = Math.max(0, Math.min(EYES.length - 1, o.eyes|0));
   return o;
 }
@@ -454,7 +457,7 @@ function nameColor(n){ let h=0; for(const ch of n) h=(h*31+ch.charCodeAt(0))>>>0
 const pick = a => a[Math.floor(Math.random()*a.length)];
 function randomLook(){
   const base = normLook(pick(Object.values(PRESETS)).look);
-  return { ...base, skin:pick(SKINS.slice(0,6)), hair:pick(HAIRS), hairStyle:Math.floor(Math.random()*HAIR_STYLES.length), shirt:pick(CLOTH), pants:pick(CLOTH), hatC:pick(CLOTH), shoeC:pick(CLOTH), c2:pick(CLOTH), hat: Math.random() < .5 ? 'none' : base.hat };
+  return { ...base, sp:pick(Object.keys(AV6.HEADS)), skin:pick(SKINS), fur2:pick(FUR2), eyeC:pick(EYE_COLS), hair:pick(HAIRS), hairStyle:Math.floor(Math.random()*HAIR_STYLES.length), shirt:pick(CLOTH), pants:pick(CLOTH), hatC:pick(CLOTH), shoeC:pick(CLOTH), c2:pick(CLOTH), hat: Math.random() < .6 ? 'none' : base.hat };
 }
 function newCanvas(w,h){ const c=document.createElement('canvas'); c.width=Math.max(1,Math.ceil(w)); c.height=Math.max(1,Math.ceil(h)); return c; }
 const fmtN = n => (n||0).toLocaleString('it-IT');
@@ -1216,217 +1219,458 @@ function glowSprite(col, rad){
 }
 
 /* ================= AVATAR (disegnati a mano, bassa risoluzione) ================= */
-/* PIXTEL — avatar v5, stile "notturno maturo": piccoli, slanciati, pochi pixel ben messi, luce da sinistra.
-   Zone: lettere minuscole = tono base/ombra della parte; maiuscole = tono chiaro. */
-const AV5 = (() => {
-const W = 16, H = 40, FX = 8, FY = 38;
-// carattere -> [zona, tono]  tono: 0 chiaro, 1 base, 2 ombra, 3 scuro
-const Z = {
-  B:['skin',0], b:['skin',1], c:['skin',2], d:['skin',3],
+/* PIXTEL — avatar v6: animali antropomorfi. Corpo umano slanciato, testa d'animale a scelta.
+   Zone corpo come v5; zone testa: f/F/c pelo, m/M/o muso (colore secondario), p interno orecchie, n naso, h/H/j criniera. */
+const AV6 = (() => {
+const W = 26, H = 68, FX = 12, FY = 65;
+const ZB = {
+  B:['skin',0], b:['skin',1], c:['skin',2],
   E:['torso',0], f:['torso',1], g:['torso',2], h:['torso',3],
   J:['uarm',0], j:['uarm',1], k:['uarm',2],
   N:['farm',0], n:['farm',1], o:['farm',2],
-  H:['hand',0], m:['hand',1], M:['hand',2],
+  P:['hand',0], m:['hand',1], M:['hand',2],
   R:['hips',0], r:['hips',1], s:['hips',2],
   V:['thigh',0], v:['thigh',1], w:['thigh',2],
   Y:['shin',0], y:['shin',1], z:['shin',2],
-  F:['foot',0], q:['foot',1], p:['foot',2]
+  Q:['foot',0], q:['foot',1], p:['foot',2]
 };
-/* tre quarti di fronte: guarda in basso a destra. Il corpo è largo 8, testa 6. */
+const ZH = { F:['fur',0], f:['fur',1], c:['fur',2], d:['fur',3], M:['fur2',0], m:['fur2',1], o:['fur2',2], p:['inner',1], n:['nose',1], H:['mane',0], h:['mane',1], j:['mane',2] };
+
+/* ---------------- corpo (vista tre quarti di fronte) ---------------- */
 const FS = {
-  head:{ at:[5, 7], map:[
-    '.bbbb.',
-    'cbbbbb',
-    'cbbbbbb',
-    'cbbbbb',
-    '.cbbb.',
-    '..cc..'] },
-  neck:{ at:[7, 13], map:['cb'] },
-  torso:{ at:[4, 14], map:[
-    '.EEffg..',
-    'EEfffgg.',
-    'EEfffgg.',
-    '.Effgg..',
-    '.Effgg..',
-    '.Efffg..',
-    '.Efffg..',
-    '.hhhhh..',
-    '.Rrrrs..',
-    '.Rrrss..'] },
-  armF:{ at:[3, 15], map:['J','J','j','j','N','n','n','H'] },
-  armB:{ at:[10, 15], map:['k','k','k','o','o','o','M'] },
+  neck:{ at:[10, 24], map:['cbbb','cbbb','cbbb'] },
+  torso:{ at:[6, 27], map:[
+    '..EEfffffg...',
+    '.EEEffffffgg.',
+    'EEEffffffffgg',
+    'EEEffffffffgg',
+    'EEffffffffggg',
+    '.EEfffffffgg.',
+    '.EEfffffffgg.',
+    '.EEfffffffgg.',
+    '.EEffffffggg.',
+    '.EEffffffggg.',
+    '.EEffffffggg.',
+    '.EEffffffggg.',
+    '.hhhhhhhhhhh.',
+    '.RRrrrrrrsss.',
+    '.RRrrrrrrsss.',
+    '.Rrrrrrrrsss.'] },
+  armF:{ at:[4, 28], map:['.J','JJ','Jj','Jj','Jj','jj','jk','Nn','Nn','Nn','Nn','No','No','PP','Pm','.m'] },
+  armB:{ at:[18, 29], map:['kk','kk','kk','kk','kk','kk','oo','oo','oo','oo','oo','oo','MM','M.'] },
   legs:[
-    { at:[5, 24], map:[
-      'Vvwvw',
-      'Vvwvw',
-      'Vvwvw',
-      'Vvwvw',
-      'Vvwvw',
-      'Yyzyz',
-      'Yyzyz',
-      'Yyzyz',
-      'Yyzyz',
-      'Yyzyz',
-      'Yyzyz',
-      'Fqqqqp',
-      'Fqqpqqp'] },
-    { at:[4, 24], map:[
-      '.Vvw.vw',
-      '.Vvw.vw',
-      'Vvw...vw',
-      'Vvw...vw',
-      'Vvw...vw',
-      'Yyz....yz',
-      'Yyz....yz',
-      'Yyz....yz',
-      'Yyz....yz',
-      'Yyz....yz',
-      'Yyz....qqp',
-      'Fqqp...',
-      '.......'] },
-    { at:[5, 24], map:[
-      'Vvwvw',
-      'Vvwvw',
-      '.Vvwvw',
-      '.Vvwvw',
-      '..Vvwv',
-      '..Yyzy',
-      '...Yyzz',
-      '...Yyzz',
-      '...Yyzz',
-      '...Yyzz',
-      '...Yyzz',
-      '...Fqqqp',
-      '...Fqqqqp'] }
+    { at:[7, 43], map:[
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'VVvvw.Vvvw',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'YYyyz.Yyyz',
+      'QQqqqpQqqqp',
+      'Qqqqqqpqqqqp',
+      'pppppp.ppppp'] },
+    { at:[6, 43], map:[
+      '.VVvvw.Vvvw',
+      '.VVvvw..Vvvw',
+      'VVvvw...Vvvw',
+      'VVvvw....Vvvw',
+      'VVvvw....Vvvw',
+      'VVvvw.....Vvvw',
+      'VVvvw.....Vvvw',
+      'VVvvw.....Vvvw',
+      'YYyyz......Yyyz',
+      'YYyyz......Yyyz',
+      'YYyyz......Yyyz',
+      'YYyyz.......Yyyz',
+      'YYyyz.......Yyyz',
+      'YYyyz.......Yyyz',
+      'YYyyz.......Yyyz',
+      'YYyyz.......Qqqqp',
+      'YYyyz.......Qqqqqp',
+      'QQqqqp......pppppp',
+      'Qqqqqqp',
+      'ppppppp'] },
+    { at:[7, 43], map:[
+      'VVvvw.Vvvw',
+      'VVvvwVvvw',
+      '.VVvvwVvvw',
+      '.VVvvwVvvw',
+      '..VVvvwVvw',
+      '..VVvvwVvw',
+      '...VVvvwvw',
+      '...VVvvwvw',
+      '...YYyyzyz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....YYyyzz',
+      '....QQqqqqp',
+      '....Qqqqqqqp',
+      '....pppppppp'] }
   ],
-  sit:{ at:[5, 24], map:[
-    'Vvvvvvw',
-    'Vvvvvvvw',
-    '......Yz',
-    '......Yz',
-    '......Yz',
-    '......Yz',
-    '......Fqqp'] }
+  sit:{ at:[7, 43], map:[
+    'VVvvvvvvvvw',
+    'VVvvvvvvvvvw',
+    'VVvvvvvvvvvw',
+    '.........Yyz',
+    '.........Yyz',
+    '.........Yyz',
+    '.........Yyz',
+    '.........Yyz',
+    '.........Yyz',
+    '.........Qqqqp',
+    '.........ppppp'] }
 };
 const BS = {
-  head:{ at:[5, 7], map:[
-    '.bbbb.',
-    'bbbbbc',
-    'bbbbbc',
-    'bbbbbc',
-    '.bbbc.',
-    '..cc..'] },
-  neck:{ at:[7, 13], map:['bc'] },
-  torso:{ at:[4, 14], map:[
-    '..Efffg.',
-    '.EEfffgg',
-    '.EEfffgg',
-    '..Effgg.',
-    '..Effgg.',
-    '..Efffg.',
-    '..Efffg.',
-    '..hhhhh.',
-    '..Rrrrs.',
-    '..Rrrss.'] },
-  armF:{ at:[12, 15], map:['k','k','k','o','o','o','o','M'] },
-  armB:{ at:[5, 15], map:['J','J','j','n','n','n','m'] },
-  legs:null, sit:{ at:[6, 24], map:['Vvwvw','Vvwvw','qqqpp'] }
+  neck:{ at:[11, 24], map:['bbbc','bbbc','bbbc'] },
+  torso:{ at:[7, 27], map:FS.torso.map.map((r, y) => y > 2 && y < 12 ? r.slice(0, 6) + 'h' + r.slice(7) : r) },
+  armF:{ at:[20, 28], map:['k.','kk','kk','kk','kk','kk','kk','oo','oo','oo','oo','oo','oo','MM','MM','M.'] },
+  armB:{ at:[6, 29], map:['JJ','Jj','Jj','Jj','Jj','jj','nn','nn','nn','nn','nn','nn','mm','m.'] },
+  legs:FS.legs.map(l => ({ at:[l.at[0] + 1, l.at[1]], map:l.map })),
+  sit:{ at:[8, 43], map:['VVvvw.Vvvw','VVvvw.Vvvw','pppppppppp'] }
 };
-BS.legs = FS.legs.map(l => ({ at:[l.at[0] + 1, l.at[1]], map:l.map }));
 
-/* capelli: 1 chiaro, 2 base, 3 ombra. Ancorati alla testa (5,7). */
-const HAIR = [
-  { fs:{ at:[4, 5], map:['..2222..','.122222.','1122223.','2233.3..','23......','3.......'] },
-    bs:{ at:[4, 5], map:['..2222..','.122222.','11222223','.2222223','.222223.','..2223..'] } },                      // corti
-  { fs:{ at:[3, 5], map:['...2222..','..122222.','.1122223.','.2233.3..','.23......','.23......','.23......','.23......','.33......','..3......'] },
-    bs:{ at:[3, 5], map:['...2222..','..122222.','.11222223','.22222223','.22222223','.22222223','.22222223','.22222223','..222223.','..3333...'] } }, // lunghi
-  { fs:{ at:[6, 1], map:['.2.','.2.','12.','122','122','22.'] }, bs:{ at:[6, 1], map:['.2.','.2.','12.','122','122','22.'] }, buzz:true },      // cresta
-  { fs:null, bs:null, buzz:true },                                                                                                            // rasati
-  { fs:{ at:[2, 5], map:['....2222..','...122222.','..1122223.','.22233.3..','2223......','.22.......'] },
-    bs:{ at:[2, 5], map:['....2222..','...122222.','..11222223','.222222223','2222222223','.22.....22'] } },                                     // codini
-  { fs:{ at:[4, 5], map:['..2222..','.122222.','11222223','2222.23.','223.....','223.....','33......'] },
-    bs:{ at:[4, 5], map:['..2222..','.122222.','11222223','22222223','22222223','.222223.','..333...'] } },                                     // caschetto
-  { fs:{ at:[3, 3], map:['..2.2.2...','.2222222..','.12222222.','1122222223','.2233.3...','.23.......'] },
-    bs:{ at:[3, 3], map:['..2.2.2...','.2222222..','.12222222.','1122222223','.222222223','..2222223.'] } },                                   // spettinati
-  { fs:{ at:[4, 2], map:['..22....','.1222...','..2222..','.122222.','1122223.','2233.3..','23......'] },
-    bs:{ at:[4, 2], map:['..22....','.1222...','..2222..','.122222.','11222223','.2222223','..22223.'] } }                                     // chignon
-];
-/* cappelli: 1-3 colore, 4-5 dettaglio, Y oro, P rosa, K scuro */
-const HATS = {
-  cap:{ fs:{ at:[4, 4], map:['..1112..','.111122.','2222222333'] }, bs:{ at:[4, 4], map:['..1112..','.111122.','.2222222.'] } },
-  beanie:{ fs:{ at:[4, 2], map:['...4....','..1112..','.111122.','1111222.','33333333'] } },
-  tophat:{ fs:{ at:[5, -1], map:['.1122.','.1122.','.1122.','.4455.','.1122.','2222223'] } },
-  witch:{ fs:{ at:[3, -3], map:['......23','.....22.','....122.','...1122.','...1122.','..445544.','.22222223.'] } },
-  catears:{ fs:{ at:[4, 4], map:['2.....2.','2P...2P.'] } },
-  bunny:{ fs:{ at:[5, -1], map:['2...2','P...P','P...P','2...2','2...2'] } },
-  horns:{ fs:{ at:[3, 2], map:['1......1','12....12','.2....2.'] } },
-  halo:{ fs:{ at:[4, 2], map:['.YYYYYY.','Y......Y','.YYYYYY.'] } },
-  crown:{ fs:{ at:[5, 3], map:['Y.Y.Y.','YYYYYY','YRYYBY'] } },
-  phones:{ fs:{ at:[4, 5], map:['.KKKKK..','K.....K.','K.....K.','11......','11......'] } }
+/* ---------------- teste (anchor in alto a sinistra, eye = posizione occhio vicino, far = occhio lontano, mouth) ---------------- */
+const SKULL = { horse:[4, 3], cat:[7, 3], dog:[8, 0], bear:[7, 2], rabbit:[6, 8], fox:[8, 3], pig:[7, 2], deer:[7, 2] };
+const HEADS = {
+  horse:{ name:'Cavallo', fs:{ at:[7, 4], eye:[6, 6], far:null, mouth:[10, 15], map:[
+      '..cf.........',
+      '.cpf.........',
+      '.cpfFF.......',
+      '.cffFFFf.....',
+      'cffffFFff....',
+      'cfffffffff...',
+      'cfffffffff...',
+      'cfffffffff...',
+      'ccffffffff...',
+      'ccfffffffm...',
+      '.cffffffmMm..',
+      '.ccfffffmMMm.',
+      '.ccffffmMMMmm',
+      '..ccfffmMMMnm',
+      '..ccffmmmmmmm',
+      '...cccommmmmo',
+      '....cccoooooo',
+      '......ccccc..'],
+      mane:['.hh.','Hhhh','Hhhh','Hhhj','Hhhj','.hhj','.hhj','.hhj','.hj.','.hj.','.j..'], maneAt:[5, 6] },
+    bs:{ at:[7, 4], map:[
+      '......fc..',
+      '......fpc.',
+      '....FFfpc.',
+      '..fFFFffc.',
+      '.ffFFffffc',
+      'fffffffffc',
+      'fffffffffc',
+      'fffffffffc',
+      'ffffffffcc',
+      '.fffffffcc',
+      '.ffffffccc',
+      '..fffffcc.',
+      '..ffffccc.',
+      '...ffccc..',
+      '....cccc..'],
+      mane:['..hh.','.Hhhh','.Hhhh','.Hhhj','.Hhhj','..hhj','..hhj','..hj.','..hj.','..j..'], maneAt:[6, 6] } },
+  cat:{ name:'Gatto', fs:{ at:[5, 7], eye:[8, 5], far:[12, 5], mouth:[12, 11], map:[
+      '.cf........cf.',
+      'cpff......cpff',
+      'cpfff....Fpff.',
+      'cfffffFFFffff.',
+      'cffffffFFFfff.',
+      'cffffffffffff.',
+      'cfffffffffffff',
+      'ccffffffffffff',
+      'ccffffffmmmmmf',
+      '.cfffffmMMMmnm',
+      '.ccffffmMMMMmm',
+      '..ccffffmmmmm.',
+      '...cccffffff..',
+      '.....cccccc...'] },
+    bs:{ at:[5, 7], map:[
+      '.fc........fc.',
+      'ffpc......ffpc',
+      '.ffpF....Ffpc.',
+      '.ffffFFFffffc.',
+      '.fffffFFFffffc',
+      '.ffffffffffffc',
+      'ffffffffffffcc',
+      'fffffffffffccc',
+      'ffffffffffccc.',
+      '.ffffffffccc..',
+      '..ffffffcc....',
+      '...ccccc......'] } },
+  dog:{ name:'Cane', fs:{ at:[4, 6], eye:[10, 4], far:[14, 4], mouth:[15, 9], map:[
+      '....cfffFFFff.....',
+      '...cfffffFFFff....',
+      '..ccffffffffff....',
+      '.ccfffffffffffff..',
+      'ccccfffffffffffff.',
+      'cdccffffffffffff..',
+      'cdccfffffffmmmmmm.',
+      'cdccffffffmMMMMmnn',
+      'cddcfffffmMMMMMmmn',
+      '.dd.ffffffmmmmmmm.',
+      '.d..cffffffoooooo.',
+      '.....cccffffff....',
+      '.......cccccc.....'] },
+    bs:{ at:[4, 6], map:[
+      '....ffFFFffc....',
+      '...ffFFFfffffc..',
+      '..ffffffffffffc.',
+      '.cfffffffffffffc',
+      'ccffffffffffffcc',
+      'cdcffffffffffcdc',
+      'cdcffffffffffcdc',
+      'cdd.ffffffffcddc',
+      '.dd..ffffffcc.dd',
+      '.d....cccccc...d'] } },
+  bear:{ name:'Orso', fs:{ at:[5, 6], eye:[8, 5], far:[12, 5], mouth:[12, 10], map:[
+      '.cff......cff.',
+      'cfpff....cfpff',
+      'cfffffFFFfffff',
+      'cffffffFFFffff',
+      'cffffffffffff.',
+      'cfffffffffffff',
+      'ccffffffffffff',
+      'ccffffffmmmmmmm',
+      'ccfffffmMMMMnnm',
+      '.ccffffmMMMMmmm',
+      '..ccffffmmmmmm.',
+      '...cccfffooo...',
+      '.....cccccc....'] },
+    bs:{ at:[5, 6], map:[
+      '.ffc......ffc.',
+      'ffpfc....ffpfc',
+      'fffffFFFfffffc',
+      'ffffFFFffffffc',
+      '.fffffffffffcc',
+      'fffffffffffccc',
+      'ffffffffffcccc',
+      'fffffffffcccc.',
+      '.ffffffffccc..',
+      '..ffffffccc...',
+      '...cccccc.....'] } },
+  rabbit:{ name:'Coniglio', fs:{ at:[5, -2], eye:[8, 11], far:[12, 11], mouth:[12, 17], map:[
+      '..cf.....cf...',
+      '.cpf....cpff..',
+      '.cpf....cpff..',
+      '.cpf....cpff..',
+      '.cpf...cpff...',
+      '.cpf...cpff...',
+      '.cpf..cpff....',
+      '..cf..cff.....',
+      '..cfFFFf......',
+      '.cfffFFFff....',
+      'cffffffffff...',
+      'cfffffffffff..',
+      'cffffffffffff.',
+      'cfffffffffffff',
+      'ccffffffmmmmmf',
+      '.cffffffmMMmnm',
+      '.ccfffffmMMmmm',
+      '..ccffffmmmmm.',
+      '...cccffooooo.',
+      '.....ccccccc..'] },
+    bs:{ at:[5, -2], map:[
+      '...fc.....fc..',
+      '..ffpc....fpc.',
+      '..ffpc....fpc.',
+      '..ffpc....fpc.',
+      '...ffpc...fpc.',
+      '...ffpc...fpc.',
+      '....ffpc..fpc.',
+      '.....ffc..fc..',
+      '......fFFFfc..',
+      '....ffFFFfffc.',
+      '...ffffffffffc',
+      '..fffffffffffc',
+      '.ffffffffffffc',
+      'ffffffffffffcc',
+      'fffffffffffccc',
+      '.fffffffffccc.',
+      '..ffffffccc...',
+      '...cccccc.....'] } },
+  fox:{ name:'Volpe', fs:{ at:[4, 6], eye:[10, 4], far:[14, 4], mouth:[16, 9], map:[
+      '..cf........cf.....',
+      '.cpff......cpff....',
+      '.cppff....Fppff....',
+      '.cfffffFFFffff.....',
+      'cfffffffFFFffff....',
+      'cffffffffffffffm...',
+      'ccfffffffffffmmMmm.',
+      'ccffffffffffmMMMMmn',
+      '.ccfffffffmmMMMMmmm',
+      '.ccmmffffmmmmmmmmo.',
+      '..cmmMmmmmmmooooo..',
+      '...oommmmooo.......',
+      '.....ooooo.........'] },
+    bs:{ at:[5, 6], map:[
+      '..fc.......fc..',
+      '.ffpc.....ffpc.',
+      '.ffppF...Fffpc.',
+      '..ffffFFFffffc.',
+      '.ffffffffffffcc',
+      'ffffffffffffccc',
+      '.fffffffffffcc.',
+      '..ffffffffccc..',
+      '...fffffccc....',
+      '....ccccc......'] } },
+  pig:{ name:'Maiale', fs:{ at:[5, 6], eye:[8, 4], far:[12, 4], mouth:[12, 10], map:[
+      '.cf........cf.',
+      'cppf......cppf',
+      'cpfffFFFFFfpf.',
+      'cffffffFFFfff.',
+      'cfffffffffffff',
+      'cffffffffffffff',
+      'ccffffffffmmmmm',
+      'ccfffffffmMMnMn',
+      'ccfffffffmMMMMm',
+      '.ccfffffffmmmmm',
+      '..ccfffffffff..',
+      '...cccffffff...',
+      '.....cccccc....'] },
+    bs:{ at:[5, 6], map:[
+      '.fc........fc.',
+      'fppc......fppc',
+      '.fpfFFFFFfffpc',
+      '.fffFFFffffffc',
+      'ffffffffffffcc',
+      'fffffffffffccc',
+      'fffffffffffcc.',
+      '.ffffffffffcc.',
+      '..ffffffffcc..',
+      '...ccccccc....'] } },
+  deer:{ name:'Cervo', fs:{ at:[5, 6], eye:[8, 5], far:[12, 5], mouth:[12, 10], map:[
+      'cf..........cf',
+      'cpf........fpc',
+      '.cpfFFFFFFfpc.',
+      '..cffffFFFfc..',
+      '..cffffffffff.',
+      '.cfffffffffff.',
+      '.cfffffffffffm',
+      '.ccffffffffmMm',
+      '.ccfffffffmMMmn',
+      '..ccffffffmMMmm',
+      '...ccffffffmmm.',
+      '....cccfffoo...',
+      '......ccccc....'],
+      antlers:true },
+    bs:{ at:[5, 6], map:[
+      'cf..........cf',
+      'cpf........fpc',
+      '.cpfFFFFFFfpc.',
+      '..ffffFFFfffc.',
+      '.ffffffffffcc.',
+      '.fffffffffffc.',
+      'ffffffffffffcc',
+      'fffffffffffccc',
+      '.ffffffffffcc.',
+      '..ffffffffcc..',
+      '...cccccccc...'] } }
 };
-for (const k in HATS) if (!HATS[k].bs) HATS[k].bs = HATS[k].fs;
+/* criniere / ciuffi per specie diverse dal cavallo */
+const TUFTS = [
+  null,
+  { fs:{ at:[-4, -1], map:['.hhhh..','HhhhHhh','.Hhh.jh'] }, bs:{ at:[-3, -1], map:['..hhhh.','hhHhhhH','hj.hhH.'] } },                         // ciuffo
+  { fs:{ at:[-7, -1], map:['....hhhhh..','..HHhhhhhj.','.HHhhhhhhhj','Hhhhhhhhjj.','Hhj........','hj.........','hj.........','hj.........','j..........'] },
+    bs:{ at:[-4, -1], map:['..hhhhh....','.jhhhhHH...','jhhhhhhhHH.','.jjhhhhhhhH','........jhH','.........jh','.........jh','.........jh','..........j'] } },  // lunghi
+  { fs:{ at:[-1, -4], map:['.h','hh','Hh','Hh','hj'] }, bs:{ at:[0, -4], map:['h.','hh','hH','hH','jh'] } }                                        // cresta
+];
 
 const HX = new Map();
 const rgb = h => { let c = HX.get(h); if (!c){ const n = parseInt(h.slice(1),16); c = [n>>16,(n>>8)&255,n&255]; HX.set(h,c); } return c; };
 const mix = (a, b, t) => [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t];
-// toni smorzati: il chiaro tende al caldo, l'ombra al blu notte (luce e atmosfera)
-const tones = h => { const c = typeof h === 'string' ? rgb(h) : h; return [mix(c, [255,236,200], .22), c, mix(c, [34,30,62], .38), mix(c, [20,16,40], .62)]; };
+const tones = h => { const c = typeof h === 'string' ? rgb(h) : h; return [mix(c, [255,236,200], .22), c, mix(c, [34,30,62], .36), mix(c, [20,16,40], .6)]; };
 
 function compose(L, view, frame, sit, blink, mouth = 0){
   const back = view === 'bs', V = back ? BS : FS;
+  const sp = HEADS[L.sp] ? L.sp : 'cat', HD0 = HEADS[sp][back ? 'bs' : 'fs'];
+  const hdy = 27 - (HD0.at[1] + HD0.map.length);
+  const HD = { ...HD0, at:[HD0.at[0], HD0.at[1] + hdy], maneAt: HD0.maneAt && [HD0.maneAt[0], HD0.maneAt[1] + hdy] };
+  const sk = SKULL[sp], skx = HD0.at[0] + (back ? (HD0.map[0].length - 1 - sk[0]) : sk[0]), sky = HD0.at[1] + hdy + sk[1];
+  const shiftT = t => t && { at:[skx + t.at[0], sky + t.at[1]], map:t.map };
   const out = new Uint8ClampedArray(W*H*4);
   const put = (x, y, c) => { x |= 0; y |= 0; if (x < 0 || y < 0 || x >= W || y >= H) return; const i = (y*W + x)*4; out[i] = c[0]; out[i+1] = c[1]; out[i+2] = c[2]; out[i+3] = 255; };
   const has = (x, y) => x >= 0 && y >= 0 && x < W && y < H && out[(y*W + x)*4 + 3] > 0;
-  const skin = tones(L.skin), top = L.top === 'bones' ? tones('#2a2732') : tones(L.shirt), bot = tones(L.pants), shoe = L.shoes === 'formal' ? tones('#2a2430') : tones(L.shoeC), hair = tones(L.hair), hat = tones(L.hatC), acc = tones(L.c2);
+  const fur = tones(L.skin), fur2 = tones(L.fur2 || '#e8dcc8'), mane = tones(L.hair), inner = tones('#d99aa0'), nose = tones('#2a2026');
+  const top = L.top === 'bones' ? tones('#2a2732') : tones(L.shirt), bot = tones(L.pants), shoe = L.shoes === 'formal' ? tones('#2a2430') : tones(L.shoeC), hat = tones(L.hatC), acc = tones(L.c2);
   const longS = ['long','hoodie','suit','bones','sweater','coat'].includes(L.top), noS = L.top === 'tank' || L.top === 'dress';
   const pants = L.bottom === 'jeans' || L.bottom === 'formal', shorts = L.bottom === 'shorts';
-  const zone = { skin, hand:skin, torso:top, uarm: noS ? skin : top, farm: longS ? top : skin, hips: L.top === 'dress' || L.top === 'coat' ? top : bot,
-    thigh: L.top === 'coat' ? top : pants || shorts ? bot : skin, shin: L.shoes === 'boots' ? shoe : pants ? bot : skin, foot: shoe };
-  const map = (part, dx = 0, dy = 0) => { if (!part) return; const [ax, ay] = part.at; part.map.forEach((row, y) => { for (let x = 0; x < row.length; x++){ const z = Z[row[x]]; if (z) put(ax + x + dx, ay + y + dy, zone[z[0]][z[1]]); } }); };
-  const pal = (T, extra = {}) => part => { if (!part) return; const [ax, ay] = part.at; part.map.forEach((row, y) => { for (let x = 0; x < row.length; x++){ const ch = row[x]; const c = ch >= '1' && ch <= '3' ? T[ch - 1] : ch === '4' ? acc[1] : ch === '5' ? acc[2] : extra[ch]; if (c) put(ax + x, ay + y, c); } }); };
+  const zb = { skin:fur, hand:fur, torso:top, uarm: noS ? fur : top, farm: longS ? top : fur, hips: L.top === 'dress' || L.top === 'coat' ? top : bot,
+    thigh: L.top === 'coat' ? top : pants || shorts ? bot : fur, shin: L.shoes === 'boots' ? shoe : pants ? bot : fur, foot: shoe };
+  const zh = { fur, fur2, mane, inner, nose };
+  const map = (part, Z, zone, dx = 0, dy = 0) => { if (!part) return; const [ax, ay] = part.at; part.map.forEach((row, y) => { for (let x = 0; x < row.length; x++){ const z = Z[row[x]]; if (z) put(ax + x + dx, ay + y + dy, zone[z[0]][z[1]]); } }); };
   const sw = frame === 1 ? 1 : frame === 2 ? -1 : 0;
-  const hs = L.hairStyle|0, HD = HAIR[hs] || HAIR[0];
 
-  if (back && hs === 1) pal(hair)(HD.bs);           // i capelli lunghi coprono la schiena: disegnati dopo il busto più avanti
-  map(V.armB, 0, -sw);
-  map(sit ? V.sit : V.legs[frame] || V.legs[0]);
-  map(V.neck);
-  map(V.torso);
+  map(V.armB, ZB, zb, 0, -sw);
+  map(sit ? V.sit : V.legs[frame] || V.legs[0], ZB, zb);
+  map(V.neck, ZB, zb);
+  map(V.torso, ZB, zb);
   const tx = V.torso.at[0], ty = V.torso.at[1];
   if (!back){
-    if (L.top === 'suit'){ put(tx + 3, ty, [236,232,224]); put(tx + 3, ty + 1, acc[1]); put(tx + 3, ty + 2, acc[1]); put(tx + 3, ty + 3, acc[2]); }
-    if (L.top === 'hoodie'){ put(tx + 2, ty, top[2]); put(tx + 3, ty, top[2]); put(tx + 4, ty, top[2]); put(tx + 2, ty + 1, acc[0]); put(tx + 4, ty + 1, acc[0]); }
-    if (L.top === 'bones'){ for (const y of [1, 3, 5]) for (let x = 1; x < 5; x++) put(tx + x, ty + y, x === 3 ? [180,176,166] : [214,210,198]); }
-    if (L.top === 'sweater'){ put(tx + 3, ty + 3, acc[1]); put(tx + 2, ty + 2, acc[1]); put(tx + 4, ty + 2, acc[1]); }
-    if (L.top === 'tank'){ put(tx + 1, ty, skin[1]); put(tx + 2, ty, skin[1]); put(tx + 4, ty, skin[1]); }
-    if (L.top === 'coat'){ for (let y = 1; y < 8; y++) put(tx + 3, ty + y, top[3]); put(tx + 2, ty, top[3]); put(tx + 4, ty, top[3]); }
+    if (L.top === 'suit'){ for (let y = 0; y < 5; y++){ put(tx + 5, ty + y, y ? acc[1] : [236,232,224]); put(tx + 4, ty + y, y < 3 ? [236,232,224] : top[3]); put(tx + 6, ty + y, y < 3 ? [236,232,224] : top[3]); } put(tx + 5, ty + 5, acc[2]); }
+    if (L.top === 'hoodie'){ for (let x = 3; x < 9; x++) put(tx + x, ty, top[2]); put(tx + 4, ty + 1, acc[0]); put(tx + 4, ty + 2, acc[0]); put(tx + 7, ty + 1, acc[0]); put(tx + 7, ty + 2, acc[0]); for (let x = 3; x < 9; x++) put(tx + x, ty + 8, top[2]); }
+    if (L.top === 'bones'){ for (const y of [2, 4, 6, 8]) for (let x = 2; x < 10; x++) put(tx + x, ty + y, x === 5 || x === 6 ? [190,186,176] : [220,216,204]); }
+    if (L.top === 'sweater'){ [[4,3],[5,4],[6,3],[4,2],[6,2],[5,3]].forEach(([x, y]) => put(tx + x + 1, ty + y + 2, acc[1])); }
+    if (L.top === 'tank'){ for (let x = 1; x < 11; x++) if (x !== 3 && x !== 8) put(tx + x, ty, fur[1]); }
+    if (L.top === 'coat'){ for (let y = 1; y < 12; y++) put(tx + 5, ty + y, top[3]); put(tx + 4, ty, top[3]); put(tx + 6, ty, top[3]); put(tx + 6, ty + 4, acc[1]); put(tx + 6, ty + 8, acc[1]); }
+    if (L.top === 'tee' || L.top === 'long'){ put(tx + 4, ty, fur[1]); put(tx + 5, ty, fur[1]); put(tx + 6, ty, fur[1]); }
   }
-  if (L.top === 'dress' || L.bottom === 'skirt' || L.top === 'coat'){ const c = L.top === 'dress' || L.top === 'coat' ? top : bot, n = L.top === 'coat' ? 7 : L.top === 'dress' ? 5 : 3;
-    for (let y = 0; y < n; y++){ const x0 = tx + (back ? 2 : 1) - (y > 1 ? 1 : 0), x1 = tx + (back ? 8 : 7) + (y > 2 ? 1 : 0); for (let x = x0; x < x1; x++) put(x, ty + 10 + y, c[x === x0 ? 0 : x >= x1 - 2 ? 2 : 1]); } }
-  if (back && hs === 1) pal(hair)(HD.bs);
-  map(V.armF, 0, sw);
-  map(V.head);
-  // viso: pochi pixel — occhio, naso, bocca
+  if (L.top === 'dress' || L.bottom === 'skirt' || L.top === 'coat'){ const c = L.top === 'dress' || L.top === 'coat' ? top : bot, n = L.top === 'coat' ? 11 : L.top === 'dress' ? 8 : 5;
+    for (let y = 0; y < n; y++){ const x0 = tx + 1 - (y > 2 ? 1 : 0), x1 = tx + 12 + (y > 3 ? 1 : 0); for (let x = x0; x < x1; x++) put(x, ty + 16 + y, c[x <= x0 + 1 ? 0 : x >= x1 - 3 ? 2 : (x - x0) % 4 === 0 ? 2 : 1]); } }
+  if (L.bottom === 'formal' && L.top !== 'dress' && L.top !== 'coat') for (let x = 1; x < 12; x++) put(tx + x, ty + 13, [30,26,36]);
+  map(V.armF, ZB, zb, 0, sw);
+  // testa
+  const tuft = TUFTS[Math.min(3, L.hairStyle|0)];
+  if (back && (L.hairStyle|0) === 2 && tuft) map(shiftT(tuft.bs), ZH, zh);
+  map(HD, ZH, zh);
+  if (HEADS[sp].fs.antlers){ const a = [190,160,110], ad = [140,110,70]; const [hx, hy] = HD.at; [[0,-1],[0,-2],[-1,-3],[1,-3],[-1,-4],[2,-4],[1,-5],[-2,-5]].forEach(([x, y]) => { put(hx + 1 + x, hy + y, x < 0 ? ad : a); put(hx + 12 - x, hy + y, x < 0 ? a : ad); }); }
+  if (sp === 'horse' && HD.mane) map({ at:HD.maneAt, map:HD.mane }, ZH, zh);
+  else if (tuft && !(back && (L.hairStyle|0) === 2)) map(shiftT(back ? tuft.bs : tuft.fs), ZH, zh);
+  // occhi e bocca
   if (!back){
-    const hx = V.head.at[0], hy = V.head.at[1], e = L.eyes|0;
-    const eyeC = [26,20,34];
-    if (!blink && e !== 2 && e !== 3) { put(hx + 4, hy + 2, e === 5 ? [190,60,60] : eyeC); if (e === 1) put(hx + 4, hy + 1, eyeC); }
-    else put(hx + 4, hy + 2, skin[2]);
-    put(hx + 2, hy + 2, e === 5 ? [190,60,60] : (blink || e === 2 || e === 3) ? skin[2] : mix(eyeC, skin[1], .35));
-    if (e === 4){ put(hx + 3, hy + 1, hair[3]); put(hx + 4, hy + 1, hair[2]); }
-    if (mouth) { put(hx + 4, hy + 4, [80,30,40]); if (mouth === 2) put(hx + 3, hy + 4, [80,30,40]); }
-    if (L.acc === 'glasses' || L.acc === 'shades'){ put(hx + 2, hy + 2, [30,26,36]); put(hx + 3, hy + 2, [30,26,36]); put(hx + 4, hy + 2, L.acc === 'shades' ? [30,26,36] : [150,170,190]); put(hx + 5, hy + 2, [30,26,36]); }
-    if (L.acc === 'patch'){ put(hx + 4, hy + 2, [20,16,24]); put(hx + 3, hy + 1, [20,16,24]); put(hx + 2, hy + 1, [20,16,24]); }
-    if (L.acc === 'stitch'){ put(hx + 3, hy + 3, [140,40,50]); put(hx + 4, hy + 4, [140,40,50]); }
-    if (L.acc === 'bandaid'){ put(hx + 2, hy + 3, [232,200,150]); put(hx + 3, hy + 3, [232,200,150]); }
-    if (L.acc === 'blush' || e === 1) put(hx + 3, hy + 3, mix(skin[1], [230,110,120], .4));
+    const [hx, hy] = HD.at, eyeC = tones(L.eyeC || '#3a2a20');
+    const eye = (ex, ey, big) => {
+      const x = hx + ex, y = hy + ey;
+      if (blink){ put(x, y + 1, fur[3]); put(x + 1, y + 1, fur[3]); return; }
+      put(x, y, [240,236,226]); put(x + 1, y, eyeC[1]); put(x, y + 1, [240,236,226]); put(x + 1, y + 1, [20,16,24]);
+      put(x, y - 1, fur[3]); put(x + 1, y - 1, fur[3]);
+      if ((L.eyes|0) === 3){ put(x, y, fur[2]); put(x + 1, y, fur[2]); }
+      if ((L.eyes|0) === 4){ put(x - 1, y - 2, fur[3]); put(x, y - 1, fur[3]); }
+    };
+    eye(...HD.eye);
+    if (HD.far){ const x = hx + HD.far[0], y = hy + HD.far[1]; if (blink) put(x, y + 1, fur[3]); else { put(x, y, eyeC[1]); put(x, y + 1, [20,16,24]); put(x, y - 1, fur[3]); } }
+    if (mouth && HD.mouth){ const x = hx + HD.mouth[0], y = hy + HD.mouth[1]; put(x, y, [60,24,32]); put(x - 1, y, [60,24,32]); if (mouth === 2){ put(x, y + 1, [60,24,32]); put(x - 1, y + 1, [150,60,70]); } }
+    if (L.acc === 'glasses' || L.acc === 'shades'){ const x = hx + HD.eye[0], y = hy + HD.eye[1], K = [30,26,36]; for (let i = -1; i <= 2; i++){ put(x + i, y - 1, K); put(x + i, y + 2, K); } put(x - 1, y, K); put(x - 1, y + 1, K); put(x + 2, y, K); put(x + 2, y + 1, K); if (L.acc === 'shades'){ put(x, y, K); put(x + 1, y, K); put(x, y + 1, K); put(x + 1, y + 1, K); } for (let i = 1; i < 3; i++) put(x - 1 - i, y, K); if (HD.far){ const fx = hx + HD.far[0], fy = hy + HD.far[1]; for (let i = x + 3; i < fx; i++) put(i, y, K); put(fx, fy - 1, K); put(fx, fy + 2, K); if (L.acc === 'shades'){ put(fx, fy, K); put(fx, fy + 1, K); } else { put(fx + 1, fy, K); put(fx + 1, fy + 1, K); } } }
   }
-  // capelli
-  if (HD.buzz){ const hx = V.head.at[0], hy = V.head.at[1]; for (let x = 0; x < 6; x++){ put(hx + x, hy, mix(skin[1], hair[1], .6)); if (back || x < 3) put(hx + x, hy + 1, mix(skin[1], hair[1], .45)); } }
-  pal(hair)(HD[view]);
-  // cappello
-  if (L.hat && L.hat !== 'none' && HATS[L.hat]) pal(hat, { Y:[232,190,70], R:[200,60,60], B:[80,130,210], P:[230,150,170], K:[34,30,40] })(HATS[L.hat][view]);
-  // contorno scuro solo dove serve (bordo esterno, colore del vicino molto scurito)
+  // cappello (sopra la testa: ancorato al centro del cranio)
+  if (L.hat && L.hat !== 'none'){
+    const [hx, hy] = HD.at, cx = hx + 7, top0 = sp === 'rabbit' ? hy + 8 : hy + (sp === 'horse' ? 3 : 2);
+    const R = (x, y, w, h, c) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) put(x + i, y + j, c); };
+    if (L.hat === 'cap'){ R(cx - 4, top0 - 2, 8, 2, hat[1]); R(cx - 3, top0 - 3, 6, 1, hat[0]); if (!back) R(cx + 3, top0 - 1, 5, 1, hat[2]); }
+    if (L.hat === 'beanie'){ R(cx - 4, top0 - 3, 9, 3, hat[1]); R(cx - 3, top0 - 4, 7, 1, hat[0]); R(cx - 4, top0 - 1, 9, 1, hat[2]); put(cx, top0 - 5, acc[1]); }
+    if (L.hat === 'tophat'){ R(cx - 3, top0 - 9, 7, 8, hat[1]); R(cx - 3, top0 - 9, 2, 8, hat[0]); R(cx - 3, top0 - 4, 7, 1, acc[1]); R(cx - 5, top0 - 1, 11, 1, hat[2]); }
+    if (L.hat === 'witch'){ for (let y = 0; y < 9; y++){ const w = Math.max(1, 7 - Math.floor(y*0.8)); R(cx - 3 + Math.floor(y/3), top0 - 2 - y, w, 1, y < 2 ? acc[1] : hat[y % 3 ? 1 : 0]); } R(cx - 6, top0 - 1, 13, 1, hat[2]); }
+    if (L.hat === 'crown'){ R(cx - 3, top0 - 3, 7, 2, [232,190,70]); [cx - 3, cx, cx + 3].forEach(x => put(x, top0 - 4, [232,190,70])); put(cx, top0 - 3, [200,60,60]); }
+    if (L.hat === 'halo'){ R(cx - 3, top0 - 6, 7, 1, [240,210,110]); put(cx - 4, top0 - 5, [240,210,110]); put(cx + 4, top0 - 5, [240,210,110]); R(cx - 3, top0 - 4, 7, 1, [210,170,70]); }
+    if (L.hat === 'phones'){ R(cx - 6, top0 - 1, 13, 1, [40,36,48]); R(cx - 7, top0, 2, 4, hat[1]); }
+    if (L.hat === 'horns'){ put(cx - 4, top0 - 1, hat[1]); put(cx - 5, top0 - 2, hat[0]); put(cx - 5, top0 - 3, hat[0]); put(cx + 4, top0 - 1, hat[1]); put(cx + 5, top0 - 2, hat[1]); put(cx + 5, top0 - 3, hat[0]); }
+  }
+  // contorno: colore del vicino molto scurito
   const o = new Uint8ClampedArray(out);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
     if (has(x, y)) continue;
@@ -1436,24 +1680,24 @@ function compose(L, view, frame, sit, blink, mouth = 0){
   }
   return new ImageData(o, W, H);
 }
-return { compose, W, H, FX, FY };
+return { compose, W, H, FX, FY, HEADS };
 })();
 
-const AV_W = AV5.W, AV_H = AV5.H, AV_FX = AV5.FX, AV_FY = AV5.FY;
+const AV_W = AV6.W, AV_H = AV6.H, AV_FX = AV6.FX, AV_FY = AV6.FY;
 const spriteCache = new Map();
 function avatarSprite(look, view, frame, mirror, sit, blink, mouth = 0){
   const L = normLook(look);
   const key = JSON.stringify(L) + view + frame + mirror + sit + blink + mouth;
   let c = spriteCache.get(key); if (c) return c;
-  const src = newCanvas(AV_W, AV_H); src.getContext('2d').putImageData(AV5.compose(L, view, frame, sit, blink, mouth), 0, 0);
+  const src = newCanvas(AV_W, AV_H); src.getContext('2d').putImageData(AV6.compose(L, view, frame, sit, blink, mouth), 0, 0);
   if (mirror){ c = newCanvas(AV_W, AV_H); const g = c.getContext('2d'); g.translate(AV_W, 0); g.scale(-1, 1); g.drawImage(src, 0, 0); } else c = src;
   if (spriteCache.size > 1500) spriteCache.clear();
   spriteCache.set(key, c);
   return c;
 }
-const shadowAv = (() => { const c = newCanvas(12, 4), g = c.getContext('2d'); g.fillStyle = 'rgba(10,8,24,.38)'; g.fillRect(2, 0, 8, 1); g.fillRect(0, 1, 12, 2); g.fillRect(2, 3, 8, 1); return c; })();
+const shadowAv = (() => { const c = newCanvas(16, 5), g = c.getContext('2d'); g.fillStyle = 'rgba(10,8,24,.38)'; g.fillRect(3, 0, 10, 1); g.fillRect(0, 1, 16, 3); g.fillRect(3, 4, 10, 1); return c; })();
 function drawAvatar(g, fx, fy, look, d, frame, sit, blink, mouth = 0){
-  if (!sit) g.drawImage(shadowAv, fx - 6, fy - 2);
+  if (!sit) g.drawImage(shadowAv, fx - 8, fy - 3);
   const vw = VIEW[d] ?? VIEW[3];
   g.drawImage(avatarSprite(look, vw.v, frame, vw.m, !!sit, !!blink, mouth), fx - AV_FX, fy - AV_FY);
 }
@@ -1461,7 +1705,7 @@ function drawPreview(canvas, look, d = 3){
   canvas.width = AV_W; canvas.height = AV_H;
   const g = canvas.getContext('2d'); g.imageSmoothingEnabled = false;
   g.clearRect(0,0,canvas.width,canvas.height);
-  g.drawImage(shadowAv, AV_FX - 6, AV_FY - 2);
+  g.drawImage(shadowAv, AV_FX - 8, AV_FY - 3);
   g.drawImage(avatarSprite(look, VIEW[d].v, 0, VIEW[d].m, false, false), 0, 0);
 }
 
@@ -1491,7 +1735,7 @@ function setupIcons(){
 }
 function updateWardIcon(){
   const c = $('bWard').firstElementChild; c.width = 32; c.height = 32; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0,0,32,32);
-  g.drawImage(avatarSprite(S.me?.look || PRESETS.street.look, 'fs', 0, false, false, false), 3, 3, 10, 12, 1, 0, 30, 36);
+  g.drawImage(avatarSprite(S.me?.look || PRESETS.street.look, 'fs', 0, false, false, false), 4, 4, 18, 22, 3, 0, 26, 32);
 }
 
 /* ================= RENDER ================= */
@@ -1730,12 +1974,12 @@ function loop(t){
       const seed = e.uid.charCodeAt(0)*97 + e.uid.charCodeAt(1 % e.uid.length)*13;
       const blink = ((now + seed*37) % 4300) < 140;
       let fx = e.a.fx, fy = e.a.fy, d = e.p.d;
-      if (e.sit){ d = SEAT_DIR[e.sit.rr]; fy += 14 - Math.round(e.sit.def.seat/2); }
+      if (e.sit){ d = SEAT_DIR[e.sit.rr]; fy += 22 - Math.round(e.sit.def.seat/2); }
       const tk = S.talk.get(e.uid), mouth = tk && (tk > 1e11 ? (now % 4000) < 2000 : now - tk < 2600) ? [0,2,1,2,0,1][Math.floor(now/120) % 6] : 0;
       drawAvatar(ctx, fx, fy, e.prof.look, d, frame, !!e.sit, blink, mouth);
       drawn.push({ kind:'av', uid:e.uid, prof:e.prof, fx, fy });
       if (e.uid === S.uid && !moving && !S.demo){
-        const y0 = fy - 44 + Math.round(Math.sin(now/300));
+        const y0 = fy - 72 + Math.round(Math.sin(now/300));
         ctx.fillStyle = '#0c0a14'; ctx.fillRect(fx-3, y0-1, 7, 1);
         ctx.fillStyle = '#e8c86a'; ctx.fillRect(fx-2, y0, 5, 1); ctx.fillRect(fx-1, y0+1, 3, 1); ctx.fillRect(fx, y0+2, 1, 1);
       }
@@ -1781,7 +2025,7 @@ function drawPlaceGhost(o, now){
 function hitTest(lx, ly){
   for (let i = S.drawn.length - 1; i >= 0; i--){
     const d = S.drawn[i];
-    if (d.kind === 'av'){ if (lx >= d.fx-6 && lx <= d.fx+6 && ly >= d.fy-36 && ly <= d.fy+1) return d; continue; }
+    if (d.kind === 'av'){ if (lx >= d.fx-7 && lx <= d.fx+7 && ly >= d.fy-62 && ly <= d.fy+1) return d; continue; }
     const px = Math.floor(lx - d.x), py = Math.floor(ly - d.y), c = d.sp.c;
     if (px >= 0 && py >= 0 && px < c.width && py < c.height && d.sp.mask[py*c.width + px]) return d;
   }
@@ -1794,7 +2038,7 @@ function updateTip(){
   if (!h){ tip.classList.add('hidden'); return; }
   if (h.kind === 'av'){
     tip.textContent = h.prof.name; const rt = roleEl(h.uid); if (rt) tip.prepend(rt);
-    tip.style.left = (h.fx*PS)+'px'; tip.style.top = ((h.fy-40)*PS)+'px';
+    tip.style.left = (h.fx*PS)+'px'; tip.style.top = ((h.fy-66)*PS)+'px';
   } else {
     const def = MOBIX[h.it.type]; tip.textContent = (def?.name || '?') + (def?.states ? ' · doppio tocco per usarlo' : '');
     tip.style.left = (S.mouse.x)+'px'; tip.style.top = (S.mouse.y - 12)+'px';
@@ -2369,15 +2613,15 @@ $('rsGo').onclick = async () => {
 $('bRoomSet').onclick = openRoomSet;
 
 // guardaroba
-let wLook = null, wTab = 'hair', wDir = 3;
+let wLook = null, wTab = 'sp', wDir = 3;
 const WTABS = {
-  hair:  { name:'Capelli',  opts:() => HAIR_STYLES.map((n, i) => [i, n]), key:'hairStyle', col:'hair', pal:HAIRS, crop:[2, 0, 12, 14] },
-  hat:   { name:'Cappelli', opts:() => Object.entries(HATS), key:'hat', col:'hatC', pal:CLOTH, crop:[1, 0, 14, 14] },
-  face:  { name:'Viso',     opts:() => [...EYES.map((n, i) => ['e'+i, 'Occhi ' + n.toLowerCase()]), ...Object.entries(ACCS).filter(([k]) => k !== 'none').map(([k, n]) => ['a'+k, n]), ['anone', 'Nessun accessorio']], crop:[3, 5, 10, 9] },
-  top:   { name:'Maglie',   opts:() => Object.entries(TOPS), key:'top', col:'shirt', pal:CLOTH, col2:'c2', crop:[1, 12, 14, 16] },
-  bottom:{ name:'Gambe',    opts:() => Object.entries(BOTTOMS), key:'bottom', col:'pants', pal:CLOTH, crop:[2, 20, 12, 19] },
-  shoes: { name:'Scarpe',   opts:() => Object.entries(SHOES), key:'shoes', col:'shoeC', pal:CLOTH, crop:[3, 32, 10, 7] },
-  skin:  { name:'Pelle',    opts:() => [], col:'skin', pal:SKINS, crop:[0, 0, 16, 40] }
+  sp:    { name:'Specie',   opts:() => Object.entries(AV6.HEADS).map(([k, v]) => [k, v.name]), key:'sp', col:'skin', pal:SKINS, col2:'fur2', pal2:FUR2, lab:'PELO', lab2:'MUSO E PANCIA', crop:[3, 0, 20, 30] },
+  hair:  { name:'Ciuffo',   opts:() => HAIR_STYLES.map((n, i) => [i, n]), key:'hairStyle', col:'hair', pal:HAIRS, lab:'COLORE CRINIERA / CIUFFO', crop:[3, 0, 20, 30] },
+  face:  { name:'Occhi',    opts:() => [['e0','Normali'],['e3','Assonnati'],['e4','Arrabbiati'], ...Object.entries(ACCS).filter(([k]) => k !== 'none').map(([k, n]) => ['a'+k, n]), ['anone','Senza occhiali']], col:'eyeC', pal:EYE_COLS, lab:'COLORE OCCHI', crop:[5, 6, 18, 22] },
+  top:   { name:'Maglie',   opts:() => Object.entries(TOPS), key:'top', col:'shirt', pal:CLOTH, col2:'c2', pal2:CLOTH, crop:[3, 24, 20, 24] },
+  bottom:{ name:'Gambe',    opts:() => Object.entries(BOTTOMS), key:'bottom', col:'pants', pal:CLOTH, crop:[4, 38, 18, 28] },
+  shoes: { name:'Scarpe',   opts:() => Object.entries(SHOES), key:'shoes', col:'shoeC', pal:CLOTH, crop:[5, 56, 16, 12] },
+  hat:   { name:'Cappelli', opts:() => Object.entries(HATS), key:'hat', col:'hatC', pal:CLOTH, crop:[2, 0, 22, 30] }
 };
 function lookThumb(look, crop){
   const src = avatarSprite(look, 'fs', 0, false, false, false), [x, y, w, h] = crop;
@@ -2405,9 +2649,9 @@ function renderWard(){
   const cw = $('wCols'); cw.innerHTML = '';
   const addSw = (label, key, pal) => { const l = document.createElement('div'); l.className = 'lab'; l.textContent = label; const box = document.createElement('div'); box.className = 'sws'; cw.append(l, box);
     swatches(box, pal, wLook[key], c => { wLook[key] = c; renderWard(); }); };
-  if (T.col) addSw(wTab === 'skin' ? 'COLORE DELLA PELLE' : 'COLORE', T.col, T.pal);
-  if (T.col2) addSw('COLORE DETTAGLI', T.col2, CLOTH);
-  if (wTab === 'hat' || wTab === 'hair') addSw('COLORE DETTAGLI', 'c2', CLOTH);
+  if (T.col) addSw(T.lab || 'COLORE', T.col, T.pal);
+  if (T.col2) addSw(T.lab2 || 'COLORE DETTAGLI', T.col2, T.pal2 || CLOTH);
+  if (wTab === 'hat') addSw('COLORE DETTAGLI', 'c2', CLOTH);
 }
 $('wRotL').onclick = () => { wDir = [7,0,1,2,3,4,5,6][wDir] === undefined ? 3 : (wDir + 7) % 8; drawPreview($('wardPrev'), wLook, wDir); };
 $('wRotR').onclick = () => { wDir = (wDir + 1) % 8; drawPreview($('wardPrev'), wLook, wDir); };
@@ -2450,10 +2694,10 @@ function showDemo(){
     ['npc2', { x:4, y:3, d:6, fx:4, fy:3, t0:0 }],
     ['npc3', { x:1, y:2, d:2, fx:1, fy:2, t0:0 }]
   ]);
-  S.profiles.set('npc1', { name:'Lia', look:PRESETS.cute.look });
+  S.profiles.set('npc1', { name:'Lia', look:PRESETS.party.look });
   S.profiles.set('npc2', { name:'Max', look:PRESETS.street.look });
   S.profiles.set('npc3', { name:'Vlad', look:PRESETS.horror.look });
-  S.players.set('npc4', { x:5, y:3, d:5, fx:5, fy:3, t0:0 }); S.profiles.set('npc4', { name:'Ada', look:{ skin:'#e8b282', hair:'#2b1d16', hairStyle:1, shirt:'#6b2b2b', pants:'#3a3c4c', top:'coat', bottom:'jeans', shoes:'boots', shoeC:'#3a2a20', hat:'none', acc:'none', eyes:0, c2:'#c9a227' } });
+  S.players.set('npc4', { x:5, y:3, d:5, fx:5, fy:3, t0:0 }); S.profiles.set('npc4', { name:'Ada', look:PRESETS.noir.look });
   S.talk.set('npc4', 1e12);
   rebuildBlocked(); buildLayer();
   const r = S.room, wpx = (r.w + r.h)*HW + 40, hpx = (r.w + r.h)*HH + WALL_H + 60;
