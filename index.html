@@ -70,6 +70,8 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 #roomTxt{min-width:0}
 #roomName{font-family:'Silkscreen',monospace;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #roomSub{font-size:13px;color:#a9a8b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bBuild{width:30px;height:30px;flex:none;border:2px solid #000;border-radius:5px;background:#3a3c48;color:#fff;cursor:pointer;font-size:14px}
+#bBuild.on{background:#e0a030;box-shadow:0 0 0 2px #ffd27a}
 #bRoomSet{width:30px;height:30px;flex:none;border:2px solid #000;border-radius:5px;background:#3a3c48;color:#fff;cursor:pointer;font-size:15px}
 #bFull{width:40px;height:40px;font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0}
 #coinBox{padding:6px 12px;display:flex;align-items:center;gap:8px;font-family:'Silkscreen',monospace;font-size:15px;color:var(--gold)}
@@ -338,7 +340,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 
 <!-- HUD -->
 <div id="hud" class="hidden">
-  <div id="roomBox" class="chip"><div id="roomTxt"><div id="roomName">—</div><div id="roomSub"><span id="net" class="net"></span><span id="roomInfo"></span></div></div><button id="bRoomSet" class="hidden" title="Impostazioni stanza">⚙</button></div>
+  <div id="roomBox" class="chip"><div id="roomTxt"><div id="roomName">—</div><div id="roomSub"><span id="net" class="net"></span><span id="roomInfo"></span></div></div><button id="bBuild" class="hidden" title="Modalità costruzione">🔨</button><button id="bRoomSet" class="hidden" title="Impostazioni stanza">⚙</button></div>
   <div class="row" style="gap:6px;flex-wrap:nowrap"><button id="bFull" class="chip hidden" title="Schermo intero">⛶</button><div id="coinBox" class="chip"><div class="coin"></div><span id="coins">0</span></div></div>
 </div>
 
@@ -452,6 +454,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
   <div class="bd">
     <div id="cardTop"><canvas id="cardPrev" class="pxc" width="44" height="112"></canvas><div><div id="cardName">—</div><div id="cardRole"></div><div id="cardMotto" class="mut"></div></div></div>
     <div id="cardActs" class="row"></div>
+    <div id="cardCoins" class="row hidden"><b id="ccVal" style="color:#7a5a00">🪙 …</b><button class="btn" data-c="+100">+100</button><button class="btn" data-c="-100">−100</button><input id="ccAmt" class="f" style="width:110px" placeholder="+500 / =1000"><button class="btn go" id="ccGo">OK</button></div>
     <div id="cardRep">
       <textarea id="repTxt" class="f" rows="2" maxlength="250" placeholder="Motivo della segnalazione (opzionale)"></textarea>
       <button id="repGo" class="btn red" style="margin-top:6px;width:100%">🚩 Segnala allo staff</button>
@@ -500,7 +503,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getDatabase, ref, get, set, update, remove, push, onValue, onChildAdded, onChildChanged, onChildRemoved, query, orderByChild, startAt, endAt, limitToFirst, limitToLast, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, set, update, remove, push, runTransaction, onValue, onChildAdded, onChildChanged, onChildRemoved, query, orderByChild, startAt, endAt, limitToFirst, limitToLast, serverTimestamp, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXkaxi5ZWr3pzr3C_0BpwCrL_7y0tC_t8",
@@ -580,7 +583,7 @@ const S = {
   cam:{x:0,y:0}, drag:null, mouse:null,
   lastChat:0, lastReport:0, lastAuto:0, lastBuy:0, lastUse:0, denials:[],
   banned:false, bubbles:[], cardUid:null,
-  sel:null, place:null, drawn:[], talk:new Map(), acts:new Map(), serve:null
+  sel:null, place:null, drawn:[], talk:new Map(), acts:new Map(), serve:null, build:false
 };
 let srvOff = 0;
 onValue(ref(db,'.info/serverTimeOffset'), s => srvOff = s.val() || 0);
@@ -880,7 +883,7 @@ const WOOD = '#c4823f', WOOD_D = '#7c4a24', WOOD_L = '#e3ae6c', METAL = '#a7adb8
 const CATS = [
   { id:'salotto', name:'🛋 Salotto' }, { id:'camera', name:'🛏 Camera' }, { id:'cucina', name:'🍹 Cucina & Bar' },
   { id:'ufficio', name:'💼 Ufficio' }, { id:'luci', name:'💡 Luci' }, { id:'svago', name:'🕹 Svago' },
-  { id:'cute', name:'🎀 Cute' }, { id:'horror', name:'💀 Horror' }, { id:'tappeti', name:'🟥 Tappeti' }, { id:'muro', name:'🖼 Muro' },
+  { id:'cute', name:'🎀 Cute' }, { id:'horror', name:'💀 Horror' }, { id:'tappeti', name:'🟥 Tappeti' }, { id:'muro', name:'🖼 Muro' }, { id:'bagno', name:'🛁 Bagno' }, { id:'tech', name:'🎮 Tecnologia' }, { id:'giardino', name:'🌳 Giardino' }, { id:'deco', name:'🏺 Decorazioni' },
   { id:'speciali', name:'⭐ Speciali Hall', staff:true }
 ];
 const ONOFF = ['Accendi','Spegni'];
@@ -1378,6 +1381,125 @@ Object.assign(MOBIX, {
     draw(B, r, w, d){ B.fn(0, 0, 0, () => B.qT(.05, .05, 1, w - .1, d - .1, (u, v, x, y) => { const e = Math.min(u, v, 1 - u, 1 - v); if (e < .03) return '#e0b24a'; if (e < .06) return '#7a1c22'; if (e < .075) return '#e0b24a';
       const cu = Math.abs(u - .5), cv = Math.abs(v - .5); if (cu + cv < .12) return '#e0b24a'; if (Math.abs(cu + cv - .24) < .015) return '#e0b24a'; return ((x + y*2) % 11 === 0) ? '#9a2630' : '#8a1f2e'; }, .72)); }}
 });
+/* ---- catalogo esteso: bagno, camera, cucina, salotto, tecnologia, giardino, decorazioni, muro ---- */
+const PORC = '#eef0f2', GLASS = '#9fd3ea';
+Object.assign(MOBIX, {
+  /* bagno */
+  bathtub:{ name:'Vasca da bagno', cat:'bagno', price:35, w:2, d:1, rots:2, h:44, states:2, use:['Riempi','Svuota'], frames:s => s ? 3 : 1, fps:4, desc:'Riempila: schiuma e bolle comprese.',
+    draw(B, r, w, d, st, f){ const M = B.M(r, w, d);
+      B.bx(M(.06, 1.94, .1, .9), 4, 26, PORC, { lb:.05, top: st ? '#bfe6f6' : '#d8dde2' });
+      [[.15, .2], [1.85, .2], [.15, .8], [1.85, .8]].forEach(([a, b]) => { const e = M(a - .04, a + .04, b - .04, b + .04); B.post(e[0] + e[2]/2, e[1] + e[3]/2, 0, 5, '#d8b050', 3); });
+      B.then(() => { const top = (a, b) => r % 2 === 0 ? [a, b] : [b, a]; const [x, y] = B.P(...top(.3, .5), 34); B.pb.rect(x - 1, y - 8, 2, 8, [200,200,210]);
+        if (st) for (let i = 0; i < 9; i++){ const [bx, by] = B.P(...top(.4 + i*.16, .3 + (i % 3)*.2), 30); B.pb.ell(bx, by - 2 - ((i + f) % 3), 3, 2, '#ffffff', { raw:true }); } }); }},
+  toilet:{ name:'Water', cat:'bagno', price:12, w:1, d:1, rots:4, seat:16, h:52, desc:'Indispensabile. Ci si può sedere.',
+    draw(B, r){ const M = B.M(r, 1, 1); B.bx(M(.25, .75, .08, .3), 12, 30, PORC, { lb:.05 }); B.cyl(.5, .5, 0, .17, 14, PORC); B.cyl(.5, .5, 14, .24, 3, '#f8f8fa', { k:1 }); }},
+  shower:{ name:'Doccia', cat:'bagno', price:28, w:1, d:1, rots:1, h:110, states:2, use:['Apri','Chiudi'], frames:s => s ? 3 : 1, fps:8, desc:'Box doccia in vetro con acqua vera.',
+    draw(B, r, w, d, st, f){ B.box(.05, .05, 0, .9, .9, 4, PORC); B.box(.06, .06, 4, .06, .88, 96, '#c8ccd2', { mat:'metal' }); B.box(.06, .06, 4, .88, .06, 96, '#c8ccd2', { mat:'metal' });
+      B.then(() => { const [x, y] = B.P(.3, .3, 96); B.pb.ell(x + 6, y + 2, 6, 2, '#a7adb8'); if (st) for (let i = 0; i < 16; i++){ const px = x + 2 + (i*3) % 10, py = y + 6 + ((i*7 + f*9) % 60); B.pb.set(px, py, [190,230,255], .9); } });
+      }},
+  bath_sink:{ name:'Lavabo', cat:'bagno', price:14, w:1, d:1, rots:2, h:60, desc:'Lavabo a colonna con rubinetto dorato.',
+    draw(B, r){ B.cyl(.5, .5, 0, .1, 28, PORC); B.box(.2, .2, 28, .6, .6, 8, PORC, { top:'#dfe8ee' }); B.then(() => { const top = r % 2 === 0 ? [.5, .25] : [.25, .5]; const [x, y] = B.P(...top, 36); B.pb.rect(x - 1, y - 6, 2, 6, [216,176,80]); B.pb.rect(x - 1, y - 6, 5, 2, [216,176,80]); }); }},
+  bath_mat:{ name:'Tappetino bagno', cat:'bagno', price:5, w:1, d:1, rots:1, rug:true, h:6, desc:'Morbido e azzurro.',
+    draw(B, r, w, d){ B.fn(0, 0, 0, () => B.qT(.12, .12, 1, .76, .76, (u, v) => (Math.floor(u*6) + Math.floor(v*6)) % 2 ? '#7fb8e0' : '#a8d4f0', .72)); }},
+
+  /* camera */
+  double_bed:{ name:'Letto matrimoniale', cat:'camera', price:55, w:2, d:2, rots:4, h:64, desc:'Due cuscini, un piumone enorme.',
+    draw(B, r, w, d){ const M = B.M(r, w, d), back = r < 2;
+      B.bx(M(.02, 1.98, .02, .16), 0, 54, WOOD_D, { mat:'wood', k: back ? -1 : 1 });
+      B.bx(M(.05, 1.95, .16, 1.94), 0, 12, WOOD, { mat:'wood' });
+      B.bx(M(.08, 1.92, .16, 1.9), 12, 8, '#f4f2ec', { mat:'fabric' });
+      B.bx(M(.06, 1.94, .72, 1.92), 12.5, 10, '#4a6ab0', { mat:'fabric' });
+      B.bx(M(.06, 1.94, .72, .84), 12.6, 10.6, '#f4f2ec', { mat:'fabric' });
+      B.bx(M(.14, .9, .2, .55), 20, 7, '#ffffff', { mat:'fabric' }); B.bx(M(1.1, 1.86, .2, .55), 20, 7, '#ffffff', { mat:'fabric' }); }},
+  nightstand:{ name:'Comodino con lampada', cat:'camera', price:14, w:1, d:1, rots:2, h:72, states:2, use:ONOFF, desc:'Con una lampadina per leggere a letto.', light:s => s ? { c:'#ffd88a', r:1.5, z:56 } : null,
+    draw(B, r, w, d, st){ B.box(.15, .15, 0, .7, .7, 30, WOOD, { mat:'wood' }); B.then(() => { B.front(r, .85, .2, .8, 16, 10, shade(WOOD, -14)); B.front(r, .85, .45, .55, 20, 2, '#d8b060'); });
+      B.cyl(.5, .5, 30, .1, 3, '#c9a227'); B.post(.5, .5, 33, 12, '#c9a227', 2); B.cyl(.5, .5, 45, .18, 12, st ? '#fff1c4' : '#d9c58f', { lb: st ? .2 : 0 }); }},
+  dresser:{ name:'Cassettiera', cat:'camera', price:20, w:1, d:1, rots:2, h:62, desc:'Quattro cassetti e uno specchietto.',
+    draw(B, r){ if (r === 0) B.box(.06, .2, 0, .88, .6, 52, '#d8b890', { mat:'wood' }); else B.box(.2, .06, 0, .6, .88, 52, '#d8b890', { mat:'wood' });
+      B.then(() => { [4, 16, 28, 40].forEach(z => { B.front(r, .8, .1, .9, z, 10, '#c8a880'); B.front(r, .8, .44, .56, z + 4, 2, '#7a5a30'); }); }); }},
+  /* cucina */
+  counter:{ name:'Mobile cucina', cat:'cucina', price:16, w:1, d:1, rots:2, h:52, desc:'Base con piano di lavoro in marmo.',
+    draw(B, r){ B.box(.06, .06, 0, .88, .88, 38, '#e8e4dc', { lb:.03 }); B.then(() => { B.front(r, .94, .1, .48, 4, 30, '#dcd6cc'); B.front(r, .94, .52, .9, 4, 30, '#dcd6cc'); B.front(r, .94, .4, .44, 20, 6, '#8a8f9a'); B.front(r, .94, .56, .6, 20, 6, '#8a8f9a'); });
+      B.box(.03, .03, 38, .94, .94, 4, '#f4f2ec', { mat:'stone' }); }},
+  kitchen_sink:{ name:'Lavello', cat:'cucina', price:18, w:1, d:1, rots:2, h:56, states:2, use:['Apri','Chiudi'], frames:s => s ? 3 : 1, fps:8, desc:'Apri il rubinetto: scorre l\'acqua.',
+    draw(B, r, w, d, st, f){ B.box(.06, .06, 0, .88, .88, 38, '#e8e4dc', { lb:.03 }); B.then(() => { B.front(r, .94, .12, .88, 4, 30, '#dcd6cc'); });
+      B.box(.03, .03, 38, .94, .94, 4, '#c8ccd2', { mat:'metal' }); B.then(() => { const [x, y] = B.P(.5, .5, 42); B.pb.ell(x, y, 10, 4, '#7d848e', { raw:true }); const top = r % 2 === 0 ? [.5, .2] : [.2, .5]; const [tx, ty] = B.P(...top, 42); B.pb.rect(tx - 1, ty - 10, 2, 10, [190,196,204]); B.pb.rect(tx - 1, ty - 10, 6, 2, [190,196,204]);
+        if (st) for (let i = 0; i < 4; i++) B.pb.rect(tx + 4, ty - 8 + ((i*3 + f*2) % 10), 1, 2, [170,220,255]); }); }},
+  kitchen_island:{ name:'Isola cucina', cat:'cucina', price:30, w:2, d:1, rots:2, h:56, desc:'Un\'isola con piano in legno e frutta.',
+    draw(B, r, w, d){ B.box(.06, .1, 0, w - .12, d - .2, 38, '#3a4a5a'); B.box(.02, .04, 38, w - .04, d - .08, 4, WOOD_L, { mat:'wood' });
+      B.then(() => { const top = (a, b) => r % 2 === 0 ? [a, b] : [b, a]; const [x, y] = B.P(...top(1, .5), 42); B.pb.ell(x, y - 3, 7, 3, '#e8e4dc'); [[-3, '#e04848'], [1, '#f2c230'], [4, '#5fb05a']].forEach(([dx, c]) => B.pb.ell(x + dx, y - 6, 2.2, 2.2, c)); }); }},
+  /* salotto */
+  flat_tv:{ name:'TV a schermo piatto', cat:'salotto', price:45, w:2, d:1, rots:2, h:78, states:2, use:ONOFF, frames:s => s ? 6 : 1, fps:3, desc:'Mobile basso e TV grande: guarda i film!', light:s => s ? { c:'#8fb8ff', r:2, z:50 } : null,
+    draw(B, r, w, d, st, f){ const M = B.M(r, w, d);
+      B.bx(M(.05, 1.95, .3, .85), 0, 18, WOOD_D, { mat:'wood' }); B.bx(M(.85, 1.15, .45, .6), 18, 6, '#26262e');
+      B.bx(M(.15, 1.85, .48, .56), 24, 46, '#16161c', { k:1 });
+      B.fn(2, 0, 0, () => { B.front(r, .56, .2, 1.8, 27, 40, st ? (u, v, x, y) => { const sc = (f + Math.floor(u*3)) % 6; const sky = ['#2a3a8a','#6a3a7a','#a85a4a','#2a6a8a','#1a4a5a','#4a2a6a'][sc]; if (v < .3) return '!' + (u*10 + f) % 3 < 1 ? '!#3a8a4a' : '!#2f7a3f'; if ((u - .7 - f*.02)**2*4 + (v - .7)**2*6 < .02) return '!#ffe36a'; return '!' + sky; } : (u, v) => (u - v > .3 && u - v < .4) ? '#3a3e48' : '#1c1e24', .45); }); }},
+  coffee_glass:{ name:'Tavolino di vetro', cat:'salotto', price:18, w:2, d:1, rots:2, h:30, desc:'Vetro e acciaio, molto moderno.',
+    draw(B, r, w, d){ [[.15, .2], [w - .15, .2], [.15, d - .2], [w - .15, d - .2]].forEach(([x, y]) => B.post(x, y, 0, 16, '#c8ccd2', 3, { mat:'metal' })); B.box(.06, .08, 16, w - .12, d - .16, 3, '#bfe6f2', { lb:.15 }); }},
+  floor_cushion:{ name:'Cuscino da terra', cat:'salotto', price:6, w:1, d:1, rots:1, seat:8, h:20, desc:'Per sedersi per terra con stile.',
+    draw(B){ B.ball(.5, .5, 0, 13, '#c06a3a', { ry:6, tex:(x, y) => ((x + y) % 5 === 0 ? -.08 : 0) }); }},
+  rug_stripes:{ name:'Tappeto a righe', cat:'tappeti', price:11, w:2, d:3, rots:2, rug:true, h:6, desc:'Righe colorate, stile boho.',
+    draw(B, r, w, d){ B.fn(0, 0, 0, () => B.qT(.06, .06, 1, w - .12, d - .12, (u, v) => ['#e0b24a','#c06a3a','#3f7a8a','#e8e4dc','#8a4a6a'][Math.floor(v*10) % 5], .72)); }},
+  rug_round:{ name:'Tappeto tondo', cat:'tappeti', price:13, w:2, d:2, rots:1, rug:true, h:6, desc:'Grande tappeto rotondo color crema.',
+    draw(B, r, w, d){ B.fn(0, 0, 0, () => B.qT(0, 0, 1, w, d, (u, v) => { const dd = Math.hypot(u - .5, v - .5); if (dd > .48) return null; return dd > .43 ? '#a8865a' : dd > .25 && dd < .28 ? '#a8865a' : '#e8dcc0'; }, .72)); }},
+  /* tecnologia */
+  gaming_pc:{ name:'Postazione gaming', cat:'tech', price:60, w:2, d:1, rots:2, h:84, states:2, use:ONOFF, frames:s => s ? 4 : 1, fps:6, desc:'Luci RGB e due monitor.', light:(s, f) => s ? { c:['#ff5f8f','#5fd0ff','#7fe0a0','#b48ad6'][f % 4], r:1.8, z:40 } : null,
+    draw(B, r, w, d, st, f){ const M = B.M(r, w, d);
+      B.bx(M(.04, 1.96, .1, .9), 30, 4, '#1c1c24'); [[.08, .18], [1.82, 1.92]].forEach(([a, b]) => B.bx(M(a, b, .15, .85), 0, 30, '#26262e'));
+      B.bx(M(1.4, 1.75, .25, .75), 0, 28, '#2a2a34', { k:-1 });
+      B.then(() => { const c = ['#ff5f8f','#5fd0ff','#7fe0a0','#b48ad6'][f % 4]; B.front(r, .75, 1.42, 1.73, 4, 2, st ? '!' + c : '#3a3a44'); B.front(r, .9, .1, 1.9, 30, 1, st ? '!' + c : '#3a3a44'); });
+      [[.25, .95], [1.0, 1.7]].forEach(([a, b], i) => { B.bx(M(a, b, .2, .26), 40, 24, '#16161c', { k:1 }); B.fn(2, 0, i, () => B.front(r, .26, a + .04, b - .04, 43, 18, st ? (u, v) => '!' + (((Math.floor(v*8) + f + i) % 4) ? '#1a2a4a' : ['#5fd0ff','#ff5f8f'][i]) : '#1c1e24', .45)); });
+      B.bx(M(.4, 1.5, .5, .66), 34, 2, '#2a2a34', { k:1 }); }},
+  speaker:{ name:'Cassa acustica', cat:'tech', price:22, w:1, d:1, rots:2, h:80, states:2, use:['Accendi','Spegni'], frames:s => s ? 2 : 1, fps:6, desc:'Bassi che fanno tremare il pavimento.',
+    draw(B, r, w, d, st, f){ B.box(.2, .2, 0, .6, .6, 66, '#1c1c22'); B.then(() => { const pl = .8, big = st && f ? 1 : 0;
+      const ring = (z, rr) => B.front(r, pl, .5 - rr - big*.02, .5 + rr + big*.02, z - rr*40 - big, rr*80 + big*2, (u, v) => { const dd = Math.hypot(u - .5, v - .5); return dd < .2 ? '#4a4a54' : dd < .45 ? '#2a2a30' : null; });
+      ring(16, .2); ring(46, .14); if (st) B.front(r, pl, .45, .55, 60, 2, '!#7fe0a0'); }); }},
+  guitar:{ name:'Chitarra su supporto', cat:'tech', price:26, w:1, d:1, rots:1, h:72, desc:'Una chitarra elettrica rossa.',
+    draw(B){ B.post(.5, .5, 0, 6, '#2a2a30', 6); B.fn(1, 0, 0, () => { const [x, y] = B.P(.5, .5, 6); B.pb.ell(x, y - 10, 7, 9, '#c83a3a'); B.pb.ell(x - 1, y - 12, 2, 2, '#f4f2ec', { raw:true }); B.pb.rect(x - 1, y - 48, 3, 38, [120,80,40]); B.pb.rect(x - 2, y - 52, 5, 6, [40,30,30]); for (let i = 0; i < 6; i++) B.pb.set(x, y - 46 + i*6, [230,220,200]); }); }},
+  /* giardino */
+  tree:{ name:'Albero', cat:'giardino', price:30, w:1, d:1, rots:1, h:140, desc:'Un albero vero, in vaso enorme.',
+    draw(B){ B.cyl(.5, .5, 0, .3, 16, '#8a6a4a', { mat:'wood' }); B.cyl(.5, .5, 16, .07, 50, '#6a4a2a', { mat:'wood' });
+      [[.5, .5, 70, 20, '#3f8a46'], [.35, .6, 64, 14, '#367a3d'], [.65, .4, 66, 14, '#4a9a4e'], [.5, .5, 92, 16, '#4aa052'], [.42, .45, 108, 10, '#56b05a']].forEach(([x, y, z, rr, c]) => B.ball(x, y, z, rr, c, { tex:(px, py) => ((px*3 + py*5) % 7 === 0 ? -.1 : 0) })); }},
+  hedge:{ name:'Siepe', cat:'giardino', price:8, w:1, d:1, rots:1, h:40, desc:'Siepe potata a cubo.',
+    draw(B){ B.box(.08, .08, 0, .84, .84, 30, '#3f7a3a', { mat:'fur' }); }},
+  flower_bed:{ name:'Aiuola fiorita', cat:'giardino', price:15, w:2, d:1, rots:2, h:30, desc:'Fiori di tutti i colori.',
+    draw(B, r, w, d){ B.box(.05, .1, 0, w - .1, d - .2, 10, '#8a5a3a', { mat:'wood', top:'#4a3020' });
+      B.then(() => { const rnd = rng(42); for (let i = 0; i < 14; i++){ const [x, y] = B.P(.15 + rnd()*(w - .3), .2 + rnd()*(d - .4), 10); B.pb.rect(x, y - 6, 1, 6, [60,130,60]); B.pb.ell(x, y - 7, 2, 2, ['#e04848','#f2c230','#e8558e','#b48ad6','#f4f2ec'][i % 5], { raw:true }); } }); }},
+  garden_lamp:{ name:'Lampione da giardino', cat:'giardino', price:16, w:1, d:1, rots:1, h:70, states:2, use:ONOFF, desc:'Luce bassa per i vialetti.', light:s => s ? { c:'#ffe0a0', r:2, z:50 } : null,
+    draw(B, r, w, d, st){ B.post(.5, .5, 0, 44, '#2a2a30', 3); B.box(.4, .4, 44, .2, .2, 12, st ? '#fff0c0' : '#6a6458', { lb: st ? .25 : 0 }); B.cyl(.5, .5, 56, .14, 3, '#2a2a30'); }},
+  grass_rug:{ name:'Prato', cat:'giardino', price:12, w:2, d:2, rots:1, rug:true, h:6, desc:'Erba vera (quasi) per la tua stanza.',
+    draw(B, r, w, d){ B.fn(0, 0, 0, () => B.qT(.02, .02, 1, w - .04, d - .04, (u, v, x, y) => (x*7 + y*3) % 11 === 0 ? '#6ab05a' : (x + y*2) % 5 === 0 ? '#3f7a3a' : '#4f9a46', .7)); }},
+  /* decorazioni */
+  globe:{ name:'Mappamondo', cat:'deco', price:14, w:1, d:1, rots:1, h:60, frames:8, fps:3, desc:'Gira piano piano.',
+    draw(B, r, w, d, st, f){ B.cyl(.5, .5, 0, .14, 4, WOOD_D); B.post(.5, .5, 4, 22, WOOD_D, 3); B.ball(.5, .5, 24, 11, '#3f7fca');
+      B.fn(1, 0, 0, () => { const [x, y] = B.P(.5, .5, 24); for (let i = 0; i < 5; i++){ const a = (i*1.3 + f*.4) % (Math.PI*2), dx = Math.sin(a)*8, vis = Math.cos(a) > -.2; if (vis) B.pb.ell(x + dx, y - 11 + (i - 2)*3, 2.5, 1.6, '#4fa04f', { raw:true }); } B.pb.line(x - 12, y - 11, x + 12, y - 11, [216,176,80]); }); }},
+  xmas_tree:{ name:'Albero di Natale', cat:'deco', price:40, w:1, d:1, rots:1, h:120, frames:4, fps:3, desc:'Lucine che lampeggiano e puntale dorato.', light:(s, f) => ({ c:['#ff8a6a','#ffd27a','#8fd0ff','#b8ff9a'][f % 4], r:1.6, z:50 }),
+    draw(B, r, w, d, st, f){ B.cyl(.5, .5, 0, .16, 10, '#a83a3a'); B.post(.5, .5, 10, 10, '#6a4a2a', 4);
+      B.fn(1, 0, 0, () => { const [x, y] = B.P(.5, .5, 20); for (let k = 0; k < 4; k++){ const top = y - 20 - k*20, wd = 26 - k*6; B.pb.poly([[x - wd, top + 24], [x + wd, top + 24], [x, top - 4]], (px, py) => tone(rgb('#2f7a3a'), .55 - (px - x)*.012 + ((px + py) % 7 === 0 ? .08 : 0), px, py)); }
+        const rnd = rng(9); for (let i = 0; i < 18; i++){ const t = rnd(), lvl = Math.floor(rnd()*4), py = y - 4 - lvl*20 - t*14, half = (26 - lvl*6)*(1 - t*.6), px = x + (rnd()*2 - 1)*half*.8; B.pb.ell(px, py, 1.5, 1.5, ['#ff5a5a','#ffd23a','#5ab0ff','#7aff8a'][(i + f) % 4], { raw:true }); }
+        B.pb.poly([[x - 4, y - 84], [x + 4, y - 84], [x, y - 92]], () => [255,214,70]); }); }},
+  snowman:{ name:'Pupazzo di neve', cat:'deco', price:12, w:1, d:1, rots:1, h:70, desc:'Non si scioglie mai.',
+    draw(B){ B.ball(.5, .5, 0, 12, '#f4f6fa'); B.ball(.5, .5, 22, 9, '#f8f9fc'); B.ball(.5, .5, 38, 7, '#ffffff');
+      B.fn(1, 0, 0, () => { const [x, y] = B.P(.5, .5, 38); B.pb.set(x - 3, y - 9, [20,20,24]); B.pb.set(x + 2, y - 9, [20,20,24]); B.pb.poly([[x, y - 7], [x, y - 5], [x + 7, y - 6]], () => [240,130,40]); B.pb.rect(x - 6, y - 15, 12, 2, [30,30,36]); B.pb.rect(x - 4, y - 22, 8, 7, [30,30,36]); B.pb.rect(x - 8, y - 1, 16, 2, [200,50,50]); }); }},
+  floor_vase:{ name:'Vaso alto', cat:'deco', price:10, w:1, d:1, rots:1, h:64, desc:'Ceramica blu con rami secchi.',
+    draw(B){ B.cyl(.5, .5, 0, .2, 30, '#2f5a9a', { top:'#1c2a4a' }); B.cyl(.5, .5, 30, .12, 6, '#2f5a9a'); B.fn(1, 0, 0, () => { const [x, y] = B.P(.5, .5, 36); [[-8, -26], [2, -32], [9, -22]].forEach(([dx, dy]) => B.pb.line(x, y, x + dx, y + dy, [110,80,50])); }); }},
+  /* muro */
+  wall_tv:{ name:'TV da parete', cat:'muro', price:38, wall:true, z:56, tw:30, th:22, states:2, use:ONOFF, frames:s => s ? 4 : 1, fps:3, desc:'Schermo piatto appeso al muro.', light:s => s ? { c:'#8fb8ff', r:1.4, z:66 } : null,
+    tex(T, st, f){ T.R(0, 0, 30, 22, '#16161c', .4); for (let y = 2; y < 20; y++) for (let x = 2; x < 28; x++) T.P(x, y, st ? (y > 13 ? [60,140,70] : (x + f*3) % 12 < 2 ? [255,230,120] : [70 + y*4, 90 + y*3, 170]) : (x - y > 10 && x - y < 13 ? [60,64,74] : [28,30,36])); }},
+  string_lights:{ name:'Lucine a filo', cat:'muro', price:12, wall:true, z:118, tw:30, th:10, frames:3, fps:3, desc:'Una ghirlanda di lucine calde.', light:() => ({ c:'#ffd88a', r:1.2, z:120 }),
+    tex(T, st, f){ for (let x = 0; x < 30; x++){ const y = 2 + Math.round(Math.sin(x/30*Math.PI)*5); T.P(x, y, [40,36,30]); if (x % 4 === 1) T.E(x, y + 2, 1.4, 1.6, ['#ffd27a','#ff9a7a','#fff0b0'][(x + f) % 3], { raw:true }); } }},
+  flag:{ name:'Stendardo', cat:'muro', price:9, wall:true, z:70, tw:18, th:30, desc:'Uno stendardo con una stella.',
+    tex(T){ T.R(0, 0, 18, 2, '#c9a227', .7); for (let y = 2; y < 30; y++){ const w = y > 24 ? 18 - (y - 24)*3 : 18; for (let x = 0; x < 18; x++) if (Math.abs(x - 8.5) < w/2) T.P(x, y, tone(rgb('#8a1f2e'), .55 + (x % 6 < 3 ? .04 : -.04), x, y)); } T.E(9, 13, 4, 4, '#e0b24a'); }},
+  wall_books:{ name:'Mensola di libri', cat:'muro', price:10, wall:true, z:80, tw:28, th:18, desc:'Una fila di libri preferiti.',
+    tex(T){ T.R(0, 15, 28, 3, '#7a4a24', .6); const rnd = rng(5); let x = 1; while (x < 26){ const w = 2 + Math.floor(rnd()*2), h = 9 + Math.floor(rnd()*5); T.R(x, 15 - h, w, h, ['#c9372c','#2f5fc4','#3d8b4a','#f2c230','#8a62d6','#e8e4dc'][Math.floor(rnd()*6)], .55); x += w; } }},
+  round_window:{ name:'Oblò', cat:'muro', price:13, wall:true, z:60, tw:24, th:24, desc:'Una finestra tonda sul mare.',
+    tex(T){ T.E(12, 12, 11.5, 11.5, '#c9a227'); T.E(12, 12, 9, 9, '#5fb8e8', { raw:true }); for (let y = 12; y < 21; y++) for (let x = 3; x < 21; x++) if ((x - 12)**2 + (y - 12)**2 < 80) T.P(x, y, y < 14 ? [70,150,210] : [40,110,180]); T.E(8, 8, 2, 1, '#ffffff', { raw:true }); }}
+});
+MOBIX.piano.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 2, d:0 } : { x: it.x + 2, y: it.y + 1, d:6 };
+['arcade','stove','fridge','tv','jukebox','kitchen_sink','speaker'].forEach(k => { if (MOBIX[k]) MOBIX[k].spot = (it, r) => r === 0 ? { x: it.x, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y, d:6 }; });
+MOBIX.flat_tv.spot = MOBIX.gaming_pc.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y + 1, d:6 };
+MOBIX.desk_pc.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y + 1, d:6 };
+MOBIX.fireplace.spot = (it, r) => r === 0 ? { x: it.x + 1, y: it.y + 1, d:0 } : { x: it.x + 1, y: it.y + 1, d:6 };
 const MOBIX_IDS = Object.keys(MOBIX);
 const rotsOf = def => def.wall ? 1 : (def.rots || 1);
 const dimsOf = (def, r) => (r % 2 && !def.wall) ? [def.d, def.w] : [def.w || 1, def.d || 1];
@@ -1601,7 +1723,14 @@ const RIG = {
     drink: { F:[[7,36],[7,42]], B:[[19.5,36],[16.5,28]], up:true },
     hold:  { F:[[7,36],[7,42]], B:[[19.5,37],[19.5,34]], up:true },
     give:  { F:[[7,36],[7,42]], B:[[21,33],[24,31]], up:true },
-    sit:   { F:[[7,36],[9,41]], B:[[18,37],[20,41]] }
+    sit:   { F:[[7,36],[9,41]], B:[[18,37],[20,41]] },
+    play1: { F:[[8,36],[10.5,38.5]], B:[[17,36],[15,38]] },
+    play2: { F:[[8,36],[11.5,37]], B:[[17,36],[14,39]] },
+    stir1: { F:[[7,36],[7,42]], B:[[19,35],[17,33]], up:true },
+    stir2: { F:[[7,36],[7,42]], B:[[19,35],[20.5,32.5]], up:true },
+    warm1: { F:[[6,34],[4,32.5]], B:[[19,34],[21,32.5]], up:true },
+    warm2: { F:[[6,34.5],[4.5,33.5]], B:[[19,34.5],[20.5,33.5]], up:true },
+    reach: { F:[[7,36],[7,42]], B:[[20.5,33],[23.5,30]], up:true }
   }
 };
 /* oggetti in mano (piccole mappe: centro sulla mano) */
@@ -2203,6 +2332,7 @@ const tileShadow = (() => { const c = newCanvas(2*HW, 2*HH), g = c.getContext('2
   g.putImageData(img, 0, 0); return c; })();
 
 /* ================= AZIONI, BEVANDE, BARISTA ================= */
+const ACTIVITY = { piano:1, arcade:1, cook:1, warm:1, type:1 };
 const ACTIONS = { dance:{ n:'Balla', i:'💃', ms:8000 }, wave:{ n:'Saluta', i:'👋', ms:3000 }, smile:{ n:'Sorridi', i:'😊', ms:4000 }, heart:{ n:'Cuore', i:'❤️', ms:3500 }, angry:{ n:'Arrabbiato', i:'😠', ms:4000 } };
 const DRINKS = { coffee:'Caffè', wine:'Vino rosso', soda:'Bibita analcolica', cocktail:'Cocktail analcolico', juice:'Succo d\'arancia', water:'Acqua frizzante', shake:'Frullato' };
 const BAR_MENU = ['coffee', 'wine', 'soda'];
@@ -2218,6 +2348,16 @@ function avatarPose(e, now, moving, seed){
   else if (pose.item) pose.arms = 'hold';
   if (e.npc && e.npc.role === 'desk'){ const talk = S.guideBot === e.npc.iid && now < (S.guideUntil || 0); pose.arms = talk ? (((now/260) | 0) % 2 ? 'wave1' : 'wave2') : ((now/1400 | 0) % 4 === 0 ? 'hold' : 'idle'); if (!talk && ((now/1700 | 0) % 5 === 0)) pose.face = 'smile'; return pose; }
   if (e.npc){ const sv = S.serve && S.serve.iid === e.npc.iid && now < S.serve.until; pose.arms = sv ? 'give' : ((now/900 | 0) % 3 === 0 ? 'hold' : 'idle'); if (sv) pose.item = S.serve.h; }
+  if (A && A.a && ACTIVITY[A.a] && !moving){
+    const k = ((now/170) | 0) % 2;
+    if (A.a === 'piano'){ pose.legs = 'sit'; pose.arms = k ? 'play1' : 'play2'; pose.item = undefined; }
+    if (A.a === 'type'){ pose.arms = (((now/120) | 0) % 2) ? 'play1' : 'play2'; pose.item = undefined; }
+    if (A.a === 'arcade'){ pose.arms = k ? 'play1' : 'play2'; pose.bob = ((now/400) | 0) % 2; pose.item = undefined; }
+    if (A.a === 'cook'){ pose.arms = ((now/300) | 0) % 2 ? 'stir1' : 'stir2'; pose.item = undefined; }
+    if (A.a === 'warm'){ pose.arms = ((now/700) | 0) % 2 ? 'warm1' : 'warm2'; pose.item = undefined; }
+    return pose;
+  }
+  if (A && A.a === 'touch' && age < 900 && !moving){ pose.arms = 'reach'; return pose; }
   if (A && A.a && ACTIONS[A.a] && age < ACTIONS[A.a].ms){
     if (A.a === 'wave') pose.arms = ((now/220) | 0) % 2 ? 'wave1' : 'wave2';
     if (A.a === 'dance' && !moving){ const k = ((now/300) | 0) % 2; pose.arms = k ? 'dance1' : 'dance2'; pose.legs = e.sit ? 'sit' : (k ? 'dance' : 'stand'); pose.bob = k; }
@@ -2358,9 +2498,12 @@ function loop(t){
       const blink = ((now + seed*37) % 4300) < 140;
       let fx = e.a.fx, fy = e.a.fy, d = e.e?.d ?? e.p.d;
       if (e.sit){ d = SEAT_DIR[e.sit.rr]; fy += 22 - Math.round(e.sit.def.seat/2); }
+      const actE = !e.npc && S.acts.get(e.uid);
+      const onBench = actE && actE.a === 'piano' && !moving; if (onBench) fy += 13;
       const tk = S.talk.get(e.uid), mouth = tk && (tk > 1e11 ? (now % 4000) < 2000 : now - tk < 2600) ? [0,2,1,2,0,1][Math.floor(now/120) % 6] : 0;
       const pose = avatarPose(e, now, moving, seed);
       drawAvatar(ctx, fx, fy, e.prof.look, d, pose, !!e.sit, blink, mouth);
+      if (onBench){ ctx.fillStyle = '#1c120e'; ctx.fillRect(fx - 8, fy - 22, 16, 4); ctx.fillStyle = '#5a3a24'; ctx.fillRect(fx - 8, fy - 23, 16, 1); ctx.fillStyle = '#3a2418'; ctx.fillRect(fx - 7, fy - 18, 2, 6); ctx.fillRect(fx + 5, fy - 18, 2, 6); ctx.fillStyle = 'rgba(10,8,24,.35)'; ctx.fillRect(fx - 8, fy - 12, 16, 2); }
       drawParticles(e, fx, fy, now);
       drawn.push({ kind:'av', uid:e.uid, prof:e.prof, fx, fy, npc:e.npc });
       if (e.uid === S.uid && !moving && !S.demo){
@@ -2494,10 +2637,11 @@ function handleClick(lx, ly, ptype){
   if (h && h.kind === 'av'){ if (h.npc){ if (h.npc.role === 'desk') openGuide(h.npc); else openBar(h.npc.iid); return; } if (h.uid === S.uid) openWheel(); else openCard(h.uid); return; }
   if (h && h.kind === 'item'){
     const def = MOBIX[h.it.type];
-    if (def.states && S.sel?.iid === h.iid && Date.now() - (S.sel.t || 0) < 900){ useItem(h.iid); S.sel.t = 0; return; }
-    selectItem(h.iid); if (S.sel) S.sel.t = Date.now();
-    if (def.seat){ const t = tileAt(lx, ly); const tgt = t && seatAt(t.x, t.y) === h.it ? t : { x:h.it.x, y:h.it.y }; walkTo(tgt.x, tgt.y); }
-    else if (def.rug){ const t = tileAt(lx, ly); if (t) walkTo(t.x, t.y); }
+    if (editing()){ selectItem(h.iid); return; }
+    selectItem(null);
+    if (def.seat){ const t = tileAt(lx, ly); const tgt = t && seatAt(t.x, t.y) === h.it ? t : { x:h.it.x, y:h.it.y }; walkTo(tgt.x, tgt.y); return; }
+    if (def.rug){ const t = tileAt(lx, ly); if (t) walkTo(t.x, t.y); if (def.states) useItem(h.iid); return; }
+    if (def.spot || def.states) { interact(h.iid); return; }
     return;
   }
   selectItem(null);
@@ -2529,6 +2673,7 @@ function findPath(sx, sy, tx, ty){
   return path;
 }
 function walkTo(tx, ty){
+  const A = S.acts.get(S.uid); if (A && (ACTIVITY[A.a] || A.a === 'dance')) setAct('');
   const me = S.players.get(S.uid); if (!me) return;
   S.path = findPath(me.x, me.y, tx, ty);
   if (!S.walking) stepNext();
@@ -2578,6 +2723,8 @@ function watchProfile(uid){
 
 /* ================= STANZE ================= */
 const canBuild = () => !!(S.room && S.roomId && (S.admin || S.room.owner === S.uid));
+const editing = () => S.build && canBuild();
+function setBuild(on){ S.build = !!on && canBuild(); $('bBuild').classList.toggle('on', S.build); if (!S.build){ cancelPlace(); selectItem(null); } toast(S.build ? '🔨 Modalità costruzione attiva' : 'Modalità costruzione spenta'); }
 async function enterRoom(id){
   if (S.entering || S.banned) return;
   S.entering = true;
@@ -2644,7 +2791,7 @@ function updateHud(){
   if (!S.room || S.demo) return;
   $('roomName').textContent = S.room.name;
   $('roomInfo').textContent = (S.roomId === LOBBY ? 'Hall pubblica' : 'di '+S.room.ownerName) + ' · ' + S.players.size + ' online';
-  $('bRoomSet').classList.toggle('hidden', !canBuild());
+  $('bRoomSet').classList.toggle('hidden', !canBuild()); $('bBuild').classList.toggle('hidden', !canBuild()); if (!canBuild() && S.build){ S.build = false; $('bBuild').classList.remove('on'); }
   $('bHall').classList.toggle('on', S.roomId === LOBBY);
 }
 
@@ -2678,6 +2825,7 @@ function placeHover(lx, ly){
 }
 function startPlace(type, iid, moving = false){
   if (!canBuild()){ toast(S.roomId === LOBBY ? 'Solo lo staff può arredare la Hall' : 'Puoi arredare solo le tue stanze'); return; }
+  if (!S.build){ S.build = true; $('bBuild').classList.add('on'); }
   closePanels(); selectItem(null);
   const def = MOBIX[type];
   let x = null, y = null, r = 0;
@@ -2729,6 +2877,38 @@ async function useItem(iid){
   const ok = await guardedWrite(() => set(ref(db,`mobix/${S.roomId}/${iid}/s`), s), 'use');
   if (!ok) toast('Non riesco a usarlo adesso');
 }
+const SPOTS = {
+  piano:'piano', arcade:'arcade', desk_pc:'type', gaming_pc:'type', stove:'cook', kitchen_sink:'cook', fireplace:'warm', jukebox:'touch', speaker:'touch', fridge:'touch', tv:'touch', flat_tv:'touch', gaming_pc:'type', drums:'arcade'
+};
+function itemTiles(it){ return footprint(it); }
+function dirToward(fx, fy, tx, ty){ const dx = Math.sign(tx - fx), dy = Math.sign(ty - fy); return DIR_INDEX[dx + ',' + dy] ?? 3; }
+function interact(iid){
+  const it = S.items.get(iid), me = S.players.get(S.uid); if (!it || !me) return;
+  const def = MOBIX[it.type], act = SPOTS[it.type] || 'touch';
+  let spot = def.spot ? def.spot(it, normR(def, it.r)) : null;
+  const ok = (x, y) => x >= 0 && y >= 0 && x < S.room.w && y < S.room.h && !S.blocked.has(x+','+y) && ![...S.players].some(([u, p]) => u !== S.uid && p.x === x && p.y === y);
+  const tiles = itemTiles(it), cx = tiles.reduce((t, [x]) => t + x, 0)/tiles.length, cy = tiles.reduce((t, [, y]) => t + y, 0)/tiles.length;
+  if (!spot || !ok(spot.x, spot.y)){
+    const cand = [];
+    for (const [x, y] of tiles) for (const [dx, dy] of DIRS8){ const nx = x + dx, ny = y + dy; if (!tiles.some(([a, b]) => a === nx && b === ny) && ok(nx, ny)) cand.push([nx, ny]); }
+    if (!cand.length){ if (def.states) useItem(iid); return; }
+    cand.sort((a, b) => (Math.abs(a[0] - me.x) + Math.abs(a[1] - me.y)) - (Math.abs(b[0] - me.x) + Math.abs(b[1] - me.y)) || (b[0] + b[1]) - (a[0] + a[1]));
+    spot = { x:cand[0][0], y:cand[0][1] };
+  }
+  spot.d = spot.d ?? dirToward(spot.x, spot.y, Math.round(cx), Math.round(cy));
+  S.pendingUse = { iid, act, ...spot };
+  if (me.x === spot.x && me.y === spot.y) arriveUse(); else walkTo(spot.x, spot.y);
+}
+async function arriveUse(){
+  const u = S.pendingUse; S.pendingUse = null; if (!u) return;
+  const it = S.items.get(u.iid), me = S.players.get(S.uid); if (!it || !me) return;
+  const def = MOBIX[it.type];
+  setTimeout(() => guardedWrite(() => set(ref(db, `presence/${S.roomId}/${S.uid}`), { x:me.x, y:me.y, d:u.d, t:serverTimestamp() }), 'face'), 230);
+  if (u.act === 'touch'){ setAct('touch'); if (def.states) useItem(u.iid); if (it.type === 'jukebox') setTimeout(() => setAct('dance'), 1200); return; }
+  setAct(u.act);
+  if (def.states && !(it.s|0)) useItem(u.iid);
+}
+
 function renderIbar(){
   const bar = $('ibar'); bar.innerHTML = '';
   const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.className = 'btn '+(cls||''); b.textContent = txt; b.onclick = fn; bar.appendChild(b); return b; };
@@ -2747,7 +2927,7 @@ function renderIbar(){
     const def = MOBIX[it.type];
     lbl(def.name);
     if (def.states){ const lab = def.use ? def.use[(it.s|0) ? 1 : 0] : 'Usa'; mk('⚡ ' + lab, 'go', () => useItem(S.sel.iid)); }
-    if (canBuild()){
+    if (editing()){
       if (rotsOf(def) > 1) mk('⟳ Ruota', '', () => rotateItem(S.sel.iid));
       mk('✥ Sposta', '', () => startPlace(it.type, S.sel.iid, true));
       mk('⤓ Raccogli', 'blue', () => pickUp(S.sel.iid));
@@ -2986,6 +3166,7 @@ async function userOf(uid){
 function headCanvas(look){ const c = newCanvas(20, 20), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.fillStyle = '#c9d2e0'; g.fillRect(0, 0, 20, 20); g.drawImage(avatarSprite(look || {}, 'fs', 0, false, false, false), 3, 4, 20, 20, 0, 0, 20, 20); return c; }
 function phClock(){ const d = new Date(), t = d.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' }); $('phTime').textContent = t; $('phBig').textContent = t; $('phDate').textContent = d.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long' }); }
 setInterval(phClock, 15000);
+setInterval(() => { const u = S.pendingUse, me = S.players.get(S.uid); if (!u || !me || S.walking) return; if (me.x === u.x && me.y === u.y) arriveUse(); else if (!S.path.length) S.pendingUse = null; }, 250);
 setInterval(() => { const o = S.pendingOrder, me = S.players.get(S.uid); if (!o || !me || S.walking) return; if (me.x === o.x && me.y === o.y) serveDrink(o.iid, o.h); else if (!S.path.length) S.pendingOrder = null; }, 300);
 function openPhone(app, arg){
   closePanels(); hide('wheel'); show('phone');
@@ -3236,7 +3417,7 @@ const LOBBY_LAYOUT = [
   ['hall_rug', 1, 11, 0], ['fireplace', 0, 12, 1, 1], ['velvet_sofa', 2, 10, 0], ['velvet_sofa', 2, 14, 2], ['armchair', 4, 12, 3], ['round_table', 2, 12, 0], ['round_table', 3, 12, 0],
   ['lamp', 1, 10, 0, 1], ['bookshelf', 5, 10, 1], ['picture', -1, 10, 0], ['picture', -1, 14, 0], ['plant', 0, 15, 0], ['cactus', 5, 15, 0],
   // angolo musica
-  ['piano', 12, 12, 0, 1], ['velvet_sofa', 11, 14, 2], ['candelabra', 14, 11, 0], ['jukebox', 15, 8, 1, 1], ['palm', 15, 15, 0],
+  ['piano', 12, 12, 0, 1], ['velvet_sofa', 10, 15, 2], ['candelabra', 14, 11, 0], ['jukebox', 15, 8, 1, 1], ['palm', 15, 15, 0],
   // angolo giochi e acquario
   ['arcade', 15, 4, 1], ['arcade', 15, 5, 1], ['aquarium', 14, 6, 1], ['beanbag', 13, 5, 0], ['plant', 15, 3, 0],
   // dettagli
@@ -3283,8 +3464,22 @@ function openCard(uid){
     const mine = S.acts.get(S.uid);
     if (mine?.h) mk('🎁 Passa il drink', '', async () => { await guardedWrite(() => set(ref(db, `gift/${S.roomId}/${uid}`), { from:S.uid, name:S.me.name, h:mine.h, t:serverTimestamp() }), 'gift'); setAct('give', ''); toast('Hai passato il drink a ' + prof.name); hide('card'); });
   }
+  const cc = $('cardCoins'); cc.classList.toggle('hidden', !S.admin);
+  if (S.admin){ $('ccVal').textContent = '🪙 …'; get(ref(db, `wallets/${uid}/coins`)).then(s => { if (S.cardUid === uid) $('ccVal').textContent = '🪙 ' + fmtN(s.val() || 0); }).catch(() => { $('ccVal').textContent = '🪙 ?'; }); }
   show('card');
 }
+async function adminCoins(uid, txt){
+  txt = String(txt || '').trim().replace(/\s/g, ''); const setMode = txt.startsWith('='), v = Math.trunc(Number(setMode ? txt.slice(1) : txt));
+  if (!Number.isFinite(v) || (!v && !setMode) || (setMode && v < 0)){ toast('Importo non valido'); return; }
+  try{
+    const res = await runTransaction(ref(db, `wallets/${uid}/coins`), c => setMode ? v : Math.max(0, (c || 0) + v));
+    const k = push(ref(db, 'audit')).key;
+    await set(ref(db, 'audit/' + k), { by:S.uid, byName:S.me.name, action:'coins', target:uid, detail:(setMode ? '=' : v > 0 ? '+' : '') + v + ' (dal gioco)', t:serverTimestamp() }).catch(() => {});
+    $('ccVal').textContent = '🪙 ' + fmtN(res.snapshot.val()); toast('Monete aggiornate: ' + fmtN(res.snapshot.val()));
+  }catch(e){ toast('Non riuscito: ' + (e.code || e.message)); }
+}
+document.querySelectorAll('#cardCoins [data-c]').forEach(b => b.onclick = () => adminCoins(S.cardUid, b.dataset.c));
+$('ccGo').onclick = () => { adminCoins(S.cardUid, $('ccAmt').value); $('ccAmt').value = ''; };
 $('repGo').onclick = async () => {
   const uid = S.cardUid, prof = S.profiles.get(uid); if (!uid || !prof) return;
   const ok = await sendReport('user_report', uid, $('repTxt').value.trim() || 'Nessun motivo', prof.name);
@@ -3389,6 +3584,7 @@ $('rsGo').onclick = async () => {
   toast(ok ? 'Stanza aggiornata' : 'Non riuscito'); if (ok){ RS.orig = { floor:RS.floor, wall:RS.wall, fp:RS.fp, wp:RS.wp, am:RS.am }; hide('rset'); }
 };
 $('bRoomSet').onclick = openRoomSet;
+$('bBuild').onclick = () => setBuild(!S.build);
 
 // guardaroba
 let wLook = null, wTab = 'sp', wDir = 3;

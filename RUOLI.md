@@ -99,3 +99,10 @@ posts/{id}, likes/{id}/{uid}
 - **✨ Arreda la Hall in automatico** (⚙ della Hall, solo staff): riempie la Hall come una lobby d'hotel con circa 58 oggetti, tra cui reception, bar con sgabelli, fontana, salotto col camino, pianoforte, giochi, piante, quadri e luci accese. Gli oggetti che c'erano tornano nello zaino di chi li aveva posati. Si può rifare quando vuoi.
 - **Barista**: toccalo e ti chiede caffè, vino o bibita analcolica, poi te lo serve al bancone.
 - **Receptionist** (dietro il *Banco reception*): toccala e spiega ai nuovi ospiti come iniziare, in 10 passi.
+
+### Modalità costruzione e interazioni
+
+- **🔨 Modalità costruzione** (accanto al nome della stanza, solo dove puoi arredare): spenta di default. Da spenta gli oggetti si **usano** con un tocco; da accesa compaiono **Ruota / Sposta / Raccogli**. Si accende da sola quando posi qualcosa dallo Zaino.
+- **Interazioni animate**: pianoforte (ti siedi sulla panca e suoni), cabinato e gaming PC (giochi/scrivi), cucina e lavello (mescoli), camino (ti scaldi le mani), juke-box (premi e balli), lampade/TV/frigo (allunghi la mano). Camminando l'attività finisce.
+- **Monete in gioco (admin)**: tocca un giocatore → saldo, +100, −100 o un importo (`+500`, `-50`, `=1000`). Finisce nel Registro di Furio.
+- **Nuove categorie Shop**: Bagno, Tecnologia, Giardino, Decorazioni, più nuovi oggetti in Camera, Cucina, Salotto, Tappeti e Muro.
