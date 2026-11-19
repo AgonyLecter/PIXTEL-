@@ -59,7 +59,34 @@
             ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
           },
           "hairStyle": {
-            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3 && newData.val() % 1 === 0"
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0"
+          },
+          "c2": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "hatC": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "shoeC": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "top": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,12}$/)"
+          },
+          "bottom": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,12}$/)"
+          },
+          "shoes": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,12}$/)"
+          },
+          "hat": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,12}$/)"
+          },
+          "acc": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z]{1,12}$/)"
+          },
+          "eyes": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0"
           },
           "$other": {
             ".validate": "false"
@@ -166,6 +193,10 @@
           "r": {
             ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 3"
           },
+          "s": {
+            ".write": "auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && data.parent().exists() && root.child('players').child(auth.uid).child('room').val() === $rid",
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 9"
+          },
           "$other": {
             ".validate": "false"
           }
@@ -250,6 +281,12 @@
         },
         "created": {
           ".validate": "newData.isNumber()"
+        },
+        "fp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0"
+        },
+        "wp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0"
         },
         "$other": {
           ".validate": "false"
