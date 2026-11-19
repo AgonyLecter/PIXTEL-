@@ -199,7 +199,10 @@ async function addCoins(uid, n){
 }
 async function deleteRoom(id){
   if (!confirm('Eliminare la stanza '+id+'? Tutti i presenti verranno espulsi.')) return;
-  await update(ref(db), { [`rooms/${id}`]:null, [`presence/${id}`]:null, [`chat/${id}`]:null, ...(await audit('room_delete', id)) });
+  const upd = { [`rooms/${id}`]:null, [`presence/${id}`]:null, [`chat/${id}`]:null, [`mobix/${id}`]:null };
+  // i Mobix posati tornano nello zaino dei proprietari
+  try { (await get(ref(db,'mobix/'+id))).forEach(m => { const o = m.val() && m.val().owner; if (o) upd[`inventory/${o}/${m.key}/room`] = null; }); } catch(e){}
+  await update(ref(db), { ...upd, ...(await audit('room_delete', id)) });
   toast('Stanza eliminata'); render();
 }
 async function purgeChat(id){
@@ -211,7 +214,7 @@ async function initHall(){
   if (s.exists()){ toast('La Hall esiste già'); return; }
   await update(ref(db), {
     'rooms/lobby': { name:'Hall PIXTEL', desc:'La hall pubblica dove arrivano tutti', owner:A.uid, ownerName:'PIXTEL',
-                     w:16, h:16, door:{x:0,y:6}, floor:'#2a2350', wall:'#3b2d7a', created:serverTimestamp() },
+                     w:16, h:16, door:{x:0,y:6}, floor:'#c9a878', wall:'#9cc46a', created:serverTimestamp() },
     ...(await audit('hall_init','lobby'))
   });
   toast('Hall aperta!'); render();

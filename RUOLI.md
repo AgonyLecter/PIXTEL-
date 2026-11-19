@@ -42,3 +42,25 @@ Proteggono tutto il gioco:
 - **Trappola** (`economy`): chi chiama `pixtel.staff.grantCoins` dalla console resta congelato finché un Admin non lo perdona. Furio imposta da solo `adminConfig/trap` al primo accesso del Creatore.
 - **Registro**: lo leggono solo gli Admin e non si può cancellare.
 - **Ruoli**: vedi sopra. Gli Helper leggono iscritti e segnalazioni e archiviano, niente di più.
+
+## Mobix (gli oggetti per arredare)
+
+Gli arredi di PIXTEL si chiamano **Mobix**. Si comprano nello **Shop** (icona del divano nella barra) e finiscono nello **Zaino** (icona della cassa). Dallo Zaino si toccano per posarli: tocca una casella per vedere dove va, tocca di nuovo (o ✓) per confermare. Toccando un Mobix posato si può **ruotare**, **spostare** o **raccogliere**.
+
+- **Chi può arredare**: il proprietario nelle sue stanze; Creatore e Admin ovunque, compresa la **Hall**.
+- **Admin nello Shop**: possono comprare ×1, ×5 o ×10 alla volta (pagano comunque con le loro monete).
+- **Prezzi**: stanno in `catalog/{mobix}/price`. Il gioco li scrive da solo al primo accesso di un Admin; finché non ci sono, gli utenti normali non possono comprare.
+- **Impostazioni stanza** (⚙ accanto al nome): nome, pavimento e pareti. Le può cambiare il proprietario o lo staff.
+
+### Dati nel database
+
+```
+catalog/{mobix}          = { price }                         (scrive solo lo staff)
+inventory/{uid}/{id}     = { type, room? }                   room = stanza dove è posato
+mobix/{stanza}/{id}      = { type, owner, x, y, r }          x = -1 / y = -1 → appeso al muro
+buys/{uid}               = { item, key, t }                  ricevuta dell'ultimo acquisto
+```
+
+Le regole controllano ogni acquisto: le monete scendono esattamente del prezzo del catalogo, nella stessa scrittura in cui l'oggetto entra nello zaino, al massimo un acquisto ogni 0,8 secondi. Non si può creare un oggetto senza pagarlo, posarlo due volte, posarlo in stanze altrui o cambiarne il tipo.
+
+⚠️ **Ripubblica `database.rules.json`** su Firebase (Realtime Database → Regole) per attivare Shop e arredamento.

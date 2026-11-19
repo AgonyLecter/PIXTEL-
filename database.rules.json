@@ -80,10 +80,10 @@
     "wallets": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
-        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth.uid === $uid && !data.exists() && newData.exists() && auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()))",
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth.uid === $uid && newData.exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && (!data.exists() || newData.parent().parent().child('buys').child($uid).child('t').val() === now)))",
         ".validate": "newData.hasChildren(['coins'])",
         "coins": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && (root.child('admins').child(auth.uid).exists() || newData.val() === 100)"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && (root.child('admins').child(auth.uid).exists() || (!data.exists() && newData.val() === 100) || (data.exists() && newData.parent().parent().parent().child('buys').child($uid).child('t').val() === now && newData.val() === data.val() - root.child('catalog').child(newData.parent().parent().parent().child('buys').child($uid).child('item').val()).child('price').val()))"
         },
         "created": {
           ".validate": "newData.isNumber()"
@@ -96,7 +96,80 @@
     "inventory": {
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())",
-        ".write": "root.child('admins').child(auth.uid).exists()"
+        ".write": "root.child('admins').child(auth.uid).exists()",
+        "$iid": {
+          ".write": "auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && ((auth.uid === $uid && !data.exists() && newData.exists() && newData.parent().parent().parent().child('buys').child($uid).child('key').val() === $iid && newData.parent().parent().parent().child('buys').child($uid).child('t').val() === now) || (auth.uid === $uid && data.exists() && newData.exists() && newData.child('type').val() === data.child('type').val() && !data.child('room').exists() && newData.child('room').exists() && newData.parent().parent().parent().child('mobix').child(newData.child('room').val()).child($iid).child('owner').val() === $uid) || (data.exists() && newData.exists() && newData.child('type').val() === data.child('type').val() && data.child('room').exists() && !newData.child('room').exists() && !newData.parent().parent().parent().child('mobix').child(data.child('room').val()).child($iid).exists() && (auth.uid === $uid || root.child('rooms').child(data.child('room').val()).child('owner').val() === auth.uid || !root.child('rooms').child(data.child('room').val()).exists())))",
+          ".validate": "newData.hasChildren(['type']) && (data.exists() || !newData.child('room').exists())",
+          "type": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 32"
+          },
+          "room": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 64"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
+      }
+    },
+    "catalog": {
+      ".read": true,
+      "$item": {
+        ".write": "root.child('admins').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['price'])",
+        "price": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000 && newData.val() % 1 === 0"
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "buys": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && newData.exists() && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists()",
+        ".validate": "newData.hasChildren(['item','key','t']) && newData.child('t').val() === now && (!data.exists() || data.child('t').val() < now - 800) && root.child('catalog').child(newData.child('item').val()).exists() && !root.child('inventory').child($uid).child(newData.child('key').val()).exists() && newData.parent().parent().child('inventory').child($uid).child(newData.child('key').val()).child('type').val() === newData.child('item').val() && (root.child('admins').child(auth.uid).exists() || newData.parent().parent().child('wallets').child($uid).child('coins').val() === root.child('wallets').child($uid).child('coins').val() - root.child('catalog').child(newData.child('item').val()).child('price').val())",
+        "item": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 32"
+        },
+        "key": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+        },
+        "t": {
+          ".validate": true
+        },
+        "$other": {
+          ".validate": "false"
+        }
+      }
+    },
+    "mobix": {
+      ".read": "auth != null",
+      "$rid": {
+        ".write": "root.child('admins').child(auth.uid).exists()",
+        "$iid": {
+          ".write": "auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && root.child('rooms').child($rid).exists() && (root.child('rooms').child($rid).child('owner').val() === auth.uid || root.child('admins').child(auth.uid).exists()) && ((!data.exists() && newData.exists() && newData.child('owner').val() === auth.uid && root.child('inventory').child(auth.uid).child($iid).exists() && !root.child('inventory').child(auth.uid).child($iid).child('room').exists() && newData.child('type').val() === root.child('inventory').child(auth.uid).child($iid).child('type').val() && newData.parent().parent().parent().child('inventory').child(auth.uid).child($iid).child('room').val() === $rid) || (data.exists() && newData.exists() && newData.child('owner').val() === data.child('owner').val() && newData.child('type').val() === data.child('type').val()) || (data.exists() && !newData.exists() && !newData.parent().parent().parent().child('inventory').child(data.child('owner').val()).child($iid).child('room').exists()))",
+          ".validate": "newData.hasChildren(['type','owner','x','y','r'])",
+          "type": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 32"
+          },
+          "owner": {
+            ".validate": "newData.isString()"
+          },
+          "x": {
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1 && newData.val() < root.child('rooms').child($rid).child('w').val()"
+          },
+          "y": {
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= -1 && newData.val() < root.child('rooms').child($rid).child('h').val()"
+          },
+          "r": {
+            ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && newData.val() <= 3"
+          },
+          "$other": {
+            ".validate": "false"
+          }
+        }
       }
     },
     "bans": {
@@ -137,7 +210,7 @@
     "rooms": {
       ".read": "auth != null",
       "$rid": {
-        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && ((!data.exists() && ($rid === auth.uid + '_0' || $rid === auth.uid + '_1' || $rid === auth.uid + '_2') && newData.child('owner').val() === auth.uid && newData.parent().parent().child('rate').child(auth.uid).child('room').val() === now && (!root.child('rate').child(auth.uid).child('room').exists() || root.child('rate').child(auth.uid).child('room').val() < now - 10000)) || (!newData.exists() && $rid !== 'lobby' && data.child('owner').val() === auth.uid))))",
+        ".write": "auth != null && (root.child('admins').child(auth.uid).exists() || (auth != null && !root.child('bans').child(auth.uid).exists() && !root.child('economy').child(auth.uid).exists() && ((!data.exists() && ($rid === auth.uid + '_0' || $rid === auth.uid + '_1' || $rid === auth.uid + '_2') && newData.child('owner').val() === auth.uid && newData.parent().parent().child('rate').child(auth.uid).child('room').val() === now && (!root.child('rate').child(auth.uid).child('room').exists() || root.child('rate').child(auth.uid).child('room').val() < now - 10000)) || (!newData.exists() && $rid !== 'lobby' && data.child('owner').val() === auth.uid) || (data.exists() && newData.exists() && data.child('owner').val() === auth.uid && newData.child('owner').val() === auth.uid && newData.child('w').val() === data.child('w').val() && newData.child('h').val() === data.child('h').val() && newData.child('door').child('x').val() === data.child('door').child('x').val() && newData.child('door').child('y').val() === data.child('door').child('y').val() && newData.child('created').val() === data.child('created').val() && newData.child('ownerName').val() === data.child('ownerName').val()))))",
         ".validate": "newData.hasChildren(['name','owner','ownerName','w','h','door','floor','wall','created'])",
         "name": {
           ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 30"
