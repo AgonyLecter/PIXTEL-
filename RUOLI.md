@@ -93,3 +93,9 @@ photos/{uid}/{id}      foto del telefono (private)
 social/{uid}           iscrizione a Pixbook
 posts/{id}, likes/{id}/{uid}
 ```
+
+### Hall pronta e bot
+
+- **✨ Arreda la Hall in automatico** (⚙ della Hall, solo staff): riempie la Hall come una lobby d'hotel con circa 58 oggetti, tra cui reception, bar con sgabelli, fontana, salotto col camino, pianoforte, giochi, piante, quadri e luci accese. Gli oggetti che c'erano tornano nello zaino di chi li aveva posati. Si può rifare quando vuoi.
+- **Barista**: toccalo e ti chiede caffè, vino o bibita analcolica, poi te lo serve al bancone.
+- **Receptionist** (dietro il *Banco reception*): toccala e spiega ai nuovi ospiti come iniziare, in 10 passi.

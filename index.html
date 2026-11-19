@@ -236,6 +236,14 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 .drinks .btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px}
 .drinks canvas{width:32px;height:40px}
 
+/* guida reception */
+#guide{width:min(420px,94vw)}
+.gstep{display:flex;flex-direction:column;gap:8px;min-height:190px}
+.gstep .gi{font-size:44px;text-align:center}
+.gstep h3{font-family:'Silkscreen',monospace;font-size:14px;text-align:center}
+.gstep p{line-height:1.4}
+.gstep b{color:#1f5a7a}
+
 /* zaino */
 #inv{width:min(520px,94vw)}
 #invGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
@@ -383,6 +391,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
     <div class="lab">PARETI</div><div class="sws" id="rsWall"></div>
     <div class="lab">MOTIVO PARETI</div><div class="seg" id="rsWp"></div>
     <div class="lab">LUCE</div><div class="seg" id="rsAm"></div>
+    <button id="rsFurnish" class="btn blue hidden">✨ Arreda la Hall in automatico</button>
     <button id="rsGo" class="btn go">Salva</button>
   </div>
 </div>
@@ -468,6 +477,15 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
       </div>
       <div class="ph-homebar" id="phHomeBtn" title="Home"></div>
     </div>
+  </div>
+</div>
+
+<!-- GUIDA RECEPTION -->
+<div id="guide" class="panel win hidden">
+  <div class="hd"><span>RECEPTION · BENVENUTO</span><span class="x" data-close="guide">✕</span></div>
+  <div class="bd">
+    <div id="gStep" class="gstep"></div>
+    <div class="row" style="justify-content:space-between"><button class="btn" id="gPrev">‹ Indietro</button><span id="gDots" class="mut"></span><button class="btn go" id="gNext">Avanti ›</button></div>
   </div>
 </div>
 
@@ -1335,14 +1353,15 @@ Object.assign(MOBIX, {
       B.bx(M(.12, 1.4, .12, .2), 44, 34, '#26232e', { k:-1 });
       if (st) B.fn(3, 0, 0, () => { const [x, y] = B.P(1, 1, 88); [[-14, 0], [6, 1], [-2, 2], [14, 3]].forEach(([dx, ph]) => { const yy = y - ((f + ph) % 4)*7; B.pb.rect(x + dx, yy, 2, 5, [255,240,190]); B.pb.rect(x + dx + 2, yy, 2, 1, [255,240,190]); B.pb.ell(x + dx, yy + 5, 2, 1.6, '#fff0be', { raw:true }); }); });
     }},
-  reception:{ ...SPX, name:'Banco reception', w:2, d:1, rots:2, h:70, desc:'Il banco dell\'hotel con campanello e lampada.', light:() => ({ c:'#ffd88a', r:1.4, z:60 }),
+  reception:{ ...SPX, name:'Banco reception', w:2, d:2, rots:2, h:70, desc:'Il banco dell\'hotel con la receptionist: spiega ai nuovi ospiti come iniziare.', light:() => ({ c:'#ffd88a', r:1.4, z:60 }),
     draw(B, r, w, d){
       const M = B.M(r, w, d), L = 2;
-      B.bx(M(.05, L - .05, .25, .9), 0, 38, '#e8e2d6', { mat:'stone' });
-      B.then(() => { B.front(r, .9, .1, L - .1, 30, 3, '#c9a227'); B.front(r, .9, .7, 1.3, 10, 14, '#8a1f2e'); B.front(r, .9, .8, 1.2, 14, 6, '#c9a227'); });
-      B.bx(M(0, L, .2, .95), 38, 4, '#5a2e1a', { mat:'wood' });
+      B.bx(M(.05, L - .05, 1.22, 1.9), 0, 38, '#e8e2d6', { mat:'stone' });
+      B.then(() => { B.front(r, 1.9, .1, L - .1, 30, 3, '#c9a227'); B.front(r, 1.9, .7, 1.3, 10, 14, '#8a1f2e'); B.front(r, 1.9, .8, 1.2, 14, 6, '#c9a227'); });
+      B.bx(M(0, L, 1.17, 1.95), 38, 4, '#5a2e1a', { mat:'wood' });
       const top = (a, b) => r % 2 === 0 ? [a, b] : [b, a];
-      B.ball(...top(1.5, .6), 42, 4, '#e0b84a', { k:1 }); B.cyl(...top(.4, .5), 42, .06, 18, '#c9a227', { k:1 }); B.cyl(...top(.4, .5), 60, .16, 8, '#2f6a4a', { k:1, top:'#4a8a6a' });
+      B.ball(...top(1.5, 1.6), 42, 4, '#e0b84a', { k:1 }); B.cyl(...top(.4, 1.5), 42, .06, 18, '#c9a227', { k:1 }); B.cyl(...top(.4, 1.5), 60, .16, 8, '#2f6a4a', { k:1, top:'#4a8a6a' });
+      B.box(...top(.8, 1.3), 42, .3, .22, 3, '#f4f2ec', { k:1 });
     }},
   velvet_sofa:{ ...SPX, name:'Divano di velluto', w:3, d:1, rots:4, seat:18, h:56, desc:'Velluto rosso e piedini dorati.', draw(B, r, w, d){ sofa(B, r, w, d, '#8a1f2e'); }},
   lamppost:{ ...SPX, name:'Lampione liberty', w:1, d:1, rots:1, h:134, states:2, use:ONOFF, desc:'Lampione in ferro battuto.', light:s => s ? { c:'#ffd27a', r:3.2, z:110 } : null,
@@ -1588,6 +1607,7 @@ const RIG = {
 /* oggetti in mano (piccole mappe: centro sulla mano) */
 const HELD = {
   coffee:  { at:[-2, -4], map:['.ww.','wbbw','wwww','.ww.'], pal:{ w:[236,232,224], b:[110,70,44] } },
+  wine:    { at:[-1, -6], map:['gg','rr','rr','.g','.g','gg'], pal:{ g:[220,232,240], r:[140,20,40] } },
   cocktail:{ at:[-2, -6], map:['..p.','.p..','gggg','.gg.','..g.','.ggg'], pal:{ g:[230,120,160], p:[250,210,80] } },
   juice:   { at:[-1, -5], map:['oo','oo','oo','oo','oo'], pal:{ o:[245,160,50] } },
   soda:    { at:[-1, -4], map:['ss','rr','rr','ss'], pal:{ s:[200,200,210], r:[200,50,60] } },
@@ -2184,7 +2204,9 @@ const tileShadow = (() => { const c = newCanvas(2*HW, 2*HH), g = c.getContext('2
 
 /* ================= AZIONI, BEVANDE, BARISTA ================= */
 const ACTIONS = { dance:{ n:'Balla', i:'💃', ms:8000 }, wave:{ n:'Saluta', i:'👋', ms:3000 }, smile:{ n:'Sorridi', i:'😊', ms:4000 }, heart:{ n:'Cuore', i:'❤️', ms:3500 }, angry:{ n:'Arrabbiato', i:'😠', ms:4000 } };
-const DRINKS = { coffee:'Caffè', cocktail:'Cocktail analcolico', juice:'Succo d\'arancia', soda:'Bibita', water:'Acqua frizzante', shake:'Frullato' };
+const DRINKS = { coffee:'Caffè', wine:'Vino rosso', soda:'Bibita analcolica', cocktail:'Cocktail analcolico', juice:'Succo d\'arancia', water:'Acqua frizzante', shake:'Frullato' };
+const BAR_MENU = ['coffee', 'wine', 'soda'];
+const RECEPTION_LOOK = { sp:'cat', skin:'#2e2a30', fur2:'#f0e8d8', hair:'#2e2a30', hairStyle:1, eyeC:'#5a8a4a', shirt:'#2a3a5a', pants:'#2a3a5a', top:'suit', bottom:'skirt', shoes:'formal', shoeC:'#16151c', hat:'none', hatC:'#3a3c4c', acc:'glasses', eyes:0, c2:'#c9a227' };
 const BARISTA_LOOK = { sp:'horse', skin:'#6a4632', fur2:'#e0cdb0', hair:'#1e1612', hairStyle:0, eyeC:'#3a2a20', shirt:'#1c1c24', pants:'#1c1c24', top:'suit', bottom:'formal', shoes:'formal', shoeC:'#16151c', hat:'none', hatC:'#3a3c4c', acc:'none', eyes:0, c2:'#a83a3a' };
 function avatarPose(e, now, moving, seed){
   const A = e.npc ? null : S.acts.get(e.uid), age = A ? srvNow() - (A.t || 0) : 1e9;
@@ -2194,6 +2216,7 @@ function avatarPose(e, now, moving, seed){
   else if (e.sit){ pose.legs = 'sit'; pose.arms = 'sit'; }
   if (pose.item && !moving){ pose.arms = ((now + seed*53) % 8000) < 1400 ? 'drink' : 'hold'; }
   else if (pose.item) pose.arms = 'hold';
+  if (e.npc && e.npc.role === 'desk'){ const talk = S.guideBot === e.npc.iid && now < (S.guideUntil || 0); pose.arms = talk ? (((now/260) | 0) % 2 ? 'wave1' : 'wave2') : ((now/1400 | 0) % 4 === 0 ? 'hold' : 'idle'); if (!talk && ((now/1700 | 0) % 5 === 0)) pose.face = 'smile'; return pose; }
   if (e.npc){ const sv = S.serve && S.serve.iid === e.npc.iid && now < S.serve.until; pose.arms = sv ? 'give' : ((now/900 | 0) % 3 === 0 ? 'hold' : 'idle'); if (sv) pose.item = S.serve.h; }
   if (A && A.a && ACTIONS[A.a] && age < ACTIONS[A.a].ms){
     if (A.a === 'wave') pose.arms = ((now/220) | 0) % 2 ? 'wave1' : 'wave2';
@@ -2224,8 +2247,12 @@ function drawParticles(e, fx, fy, now){
 // baristi: uno dietro ogni bancone speciale
 function baristas(){
   const out = [];
-  for (const [iid, it] of S.items){ if (it.type !== 'hall_bar') continue; const r = normR(MOBIX.hall_bar, it.r);
-    out.push(r === 0 ? { iid, x: it.x + 1, y: it.y, d:4 } : { iid, x: it.x, y: it.y + 1, d:2 }); }
+  for (const [iid, it] of S.items){
+    if (it.type !== 'hall_bar' && it.type !== 'reception') continue;
+    const r = normR(MOBIX[it.type], it.r), role = it.type === 'hall_bar' ? 'bar' : 'desk';
+    if (role === 'bar') out.push(r === 0 ? { iid, role, x: it.x + 1, y: it.y, d:4 } : { iid, role, x: it.x, y: it.y + 1, d:2 });
+    else out.push(r === 0 ? { iid, role, x: it.x + 1, y: it.y, d:4 } : { iid, role, x: it.x, y: it.y + 1, d:2 });
+  }
   return out;
 }
 async function setAct(a, h){
@@ -2317,7 +2344,7 @@ function loop(t){
     if (!a.rp.moving){ const st = seatAt(p.x, p.y); if (st){ const def = MOBIX[st.type], rr = normR(def, st.r); const [w, d] = dimsOf(def, rr); sit = { it:st, def, rr }; depth = st.x + w - 1 + st.y + d - 1 + (rr < 2 ? .1 : -.1); } }
     list.push({ kind:'av', uid, p, prof, a, sit, depth });
   }
-  for (const b of baristas()){ const a = { fx: Math.round(o.x + (b.x - b.y)*HW), fy: Math.round(o.y + (b.x + b.y)*HH + HH), rp:{ rx:b.x, ry:b.y, moving:false } }; list.push({ kind:'av', uid:'bar_'+b.iid, npc:b, p:{ d:b.d }, e:{ d:b.d }, prof:{ name:'Barista', look:BARISTA_LOOK }, a, depth: b.x + b.y + .4 }); }
+  for (const b of baristas()){ const a = { fx: Math.round(o.x + (b.x - b.y)*HW), fy: Math.round(o.y + (b.x + b.y)*HH + HH), rp:{ rx:b.x, ry:b.y, moving:false } }; list.push({ kind:'av', uid:'bot_'+b.iid, npc:b, p:{ d:b.d }, e:{ d:b.d }, prof:{ name: b.role === 'bar' ? 'Barista' : 'Receptionist', look: b.role === 'bar' ? BARISTA_LOOK : RECEPTION_LOOK }, a, depth: b.x + b.y + .4 }); }
   sortScene(list);
   for (const e of list){
     if (e.kind === 'item'){
@@ -2464,7 +2491,7 @@ function handleClick(lx, ly, ptype){
     return;
   }
   const h = hitTest(lx, ly);
-  if (h && h.kind === 'av'){ if (h.npc){ openBar(h.npc.iid); return; } if (h.uid === S.uid) openWheel(); else openCard(h.uid); return; }
+  if (h && h.kind === 'av'){ if (h.npc){ if (h.npc.role === 'desk') openGuide(h.npc); else openBar(h.npc.iid); return; } if (h.uid === S.uid) openWheel(); else openCard(h.uid); return; }
   if (h && h.kind === 'item'){
     const def = MOBIX[h.it.type];
     if (def.states && S.sel?.iid === h.iid && Date.now() - (S.sel.t || 0) < 900){ useItem(h.iid); S.sel.t = 0; return; }
@@ -2855,7 +2882,7 @@ function clearBubbles(){ S.bubbles.forEach(bb => bb.el.remove()); S.bubbles = []
 setInterval(() => { if (!S.bubbles.length) return; S.bubbles.forEach(bb => { bb.y -= BUB_STEP; bb.el.style.top = bb.y+'px'; }); pruneBubbles(); }, 5000);
 
 /* ================= UI: PANNELLI ================= */
-const PANELS = ['nav','ward','card','shop','inv','rset','barp'];
+const PANELS = ['nav','ward','card','shop','inv','rset','barp','guide'];
 function closePanels(){ PANELS.forEach(hide); }
 document.querySelectorAll('[data-close]').forEach(x => x.onclick = () => hide(x.dataset.close));
 function showNotice(txt){ $('noticeTxt').textContent = txt; show('notice'); }
@@ -2893,8 +2920,9 @@ function barFront(iid){
 function openBar(iid){
   closePanels(); S.barIid = iid;
   const list = $('barList'); list.innerHTML = '';
-  for (const [k, n] of Object.entries(DRINKS)){ const b = document.createElement('button'); b.className = 'btn'; const c = drinkIcon(k); c.className = 'pxc'; b.appendChild(c); b.appendChild(document.createTextNode(n)); b.onclick = () => orderDrink(k); list.appendChild(b); }
-  $('barMsg').textContent = 'Il barista ti guarda: «Cosa ti preparo?»';
+  for (const k of BAR_MENU){ const b = document.createElement('button'); b.className = 'btn'; const c = drinkIcon(k); c.className = 'pxc'; b.appendChild(c); b.appendChild(document.createTextNode(DRINKS[k])); b.onclick = () => orderDrink(k); list.appendChild(b); }
+  $('barMsg').textContent = '«Buonasera! Cosa ti preparo: un caffè, un bicchiere di vino o una bibita analcolica?»';
+  const bb = baristas().find(x => x.iid === iid); if (bb) localBubble('Barista', 'Cosa ti preparo? Caffè, vino o bibita?', bb);
   show('barp');
 }
 function orderDrink(h){
@@ -3164,6 +3192,79 @@ function phSettings(){
   body.insertAdjacentHTML('beforeend', `<div class="ph-sec">Info</div><div class="ph-list"><div class="ph-row"><div class="tx"><b>${esc(S.me?.name)}</b><small>PixPhone · PIXTEL</small></div></div></div>`);
 }
 
+/* ================= RECEPTIONIST: guida per i nuovi ospiti ================= */
+const GUIDE = [
+  ['🏨', 'Benvenuto a PIXTEL!', 'Io sono la receptionist. Ti spiego in due minuti come funziona l\'hotel. Tocca <b>Avanti</b>.'],
+  ['👣', 'Muoverti', '<b>Tocca il pavimento</b> per camminare. Trascina con un dito per spostare la vista, <b>pizzica</b> (o usa ＋ e －) per lo zoom. Tocca una sedia o un divano per <b>sederti</b>.'],
+  ['💬', 'Parlare', 'Scrivi nella barra in basso e premi Invio: il tuo fumetto lo vedono tutti nella stanza e la tua bocca si muove mentre parli.'],
+  ['💃', 'Azioni', 'Tocca <b>il tuo personaggio</b>: si apre la ruota con <b>balla, saluta, sorridi, cuore e arrabbiato</b>. Tocca un altro ospite per vedere il profilo, <b>aggiungerlo agli amici</b> o passargli il tuo drink.'],
+  ['🍷', 'Il bar', 'Tocca il <b>barista</b> al bancone: ti chiederà se vuoi caffè, vino o una bibita analcolica. Siediti sugli sgabelli e bevi in compagnia!'],
+  ['👕', 'Il tuo look', 'Nel <b>guardaroba</b> (il tuo musetto nella barra) scegli specie, colori del pelo, criniera, occhi, vestiti e cappelli. Ci sono anche stili pronti.'],
+  ['🧭', 'Le tue stanze', 'Apri il <b>Navigatore</b> (la bussola) per visitare le stanze degli altri o <b>crearne fino a 3 tue</b>, scegliendo pavimento, pareti e luce.'],
+  ['🛋', 'Arredare', 'Nello <b>Shop</b> compri i Mobix con le monete, nello <b>Zaino</b> li trovi e li posi nelle tue stanze. Molti oggetti si <b>accendono con un doppio tocco</b>: lampade, TV, camino, juke-box…'],
+  ['📱', 'Il telefono', 'Tocca il <b>telefono</b>: rubrica con gli amici, <b>fotocamera</b>, il social <b>Pixbook</b> per pubblicare le foto e <b>PixChat</b> per scrivere agli amici anche da un\'altra stanza.'],
+  ['✨', 'Buon soggiorno!', 'Se hai problemi con qualcuno toccalo e usa <b>Segnala allo staff</b>. Ora vai a esplorare: la fontana, il pianoforte e il juke-box ti aspettano!']
+];
+let gIdx = 0;
+function openGuide(bot){
+  closePanels(); gIdx = 0; S.guideBot = bot.iid; S.guideUntil = performance.now() + 3500;
+  localBubble('Receptionist', `Benvenuto all'hotel PIXTEL, ${S.me?.name || 'ospite'}! Posso aiutarti?`, bot);
+  renderGuide(); show('guide');
+}
+function renderGuide(){
+  const [i, t, txt] = GUIDE[gIdx];
+  $('gStep').innerHTML = `<div class="gi">${i}</div><h3>${t}</h3><p>${txt}</p>`;
+  $('gDots').textContent = (gIdx + 1) + ' / ' + GUIDE.length;
+  $('gPrev').disabled = !gIdx; $('gNext').textContent = gIdx === GUIDE.length - 1 ? 'Grazie!' : 'Avanti ›';
+}
+$('gPrev').onclick = () => { if (gIdx){ gIdx--; renderGuide(); } };
+$('gNext').onclick = () => { if (gIdx < GUIDE.length - 1){ gIdx++; renderGuide(); S.guideUntil = performance.now() + 1500; } else hide('guide'); };
+
+/* ================= HALL ARREDATA (solo staff) ================= */
+const LOBBY_LAYOUT = [
+  // ingresso
+  ['hall_rug', 1, 5, 0], ['stanchion', 1, 4, 0], ['stanchion', 1, 8, 0], ['palm', 0, 3, 0], ['palm', 0, 9, 0],
+  // reception
+  ['reception', 2, 0, 0], ['plant', 4, 0, 0], ['sunflower', 1, 0, 0], ['clock', 2, -1, 0], ['picture', 4, -1, 0], ['lamp', 5, 0, 0, 1],
+  // bar
+  ['hall_bar', 10, 0, 0], ['bar_shelf', 11, -1, 0], ['neon', 13, -1, 0, 1], ['stool', 10, 2, 0], ['stool', 11, 2, 0], ['stool', 12, 2, 0],
+  ['palm', 9, 0, 0], ['plant', 13, 0, 0], ['round_table', 14, 2, 0], ['bench', 14, 0, 1],
+  // centro: fontana e lampioni
+  ['fountain', 7, 7, 0], ['lamppost', 5, 8, 0, 1], ['lamppost', 11, 8, 0, 1], ['candelabra', 6, 10, 0], ['candelabra', 10, 5, 0],
+  ['window', 7, -1, 0], ['window', 8, -1, 0], ['poster', -1, 2, 0], ['mirror', -1, 4, 0],
+  // salotto di velluto col camino
+  ['hall_rug', 1, 11, 0], ['fireplace', 0, 12, 1, 1], ['velvet_sofa', 2, 10, 0], ['velvet_sofa', 2, 14, 2], ['armchair', 4, 12, 3], ['round_table', 2, 12, 0], ['round_table', 3, 12, 0],
+  ['lamp', 1, 10, 0, 1], ['bookshelf', 5, 10, 1], ['picture', -1, 10, 0], ['picture', -1, 14, 0], ['plant', 0, 15, 0], ['cactus', 5, 15, 0],
+  // angolo musica
+  ['piano', 12, 12, 0, 1], ['velvet_sofa', 11, 14, 2], ['candelabra', 14, 11, 0], ['jukebox', 15, 8, 1, 1], ['palm', 15, 15, 0],
+  // angolo giochi e acquario
+  ['arcade', 15, 4, 1], ['arcade', 15, 5, 1], ['aquarium', 14, 6, 1], ['beanbag', 13, 5, 0], ['plant', 15, 3, 0],
+  // dettagli
+  ['plant', 6, 0, 0], ['cloud_lamp', 9, 14, 0, 1], ['teddy', 8, 15, 0], ['lava_lamp', 7, 0, 0, 1], ['catbed', 3, 3, 0]
+];
+async function furnishLobby(){
+  if (!S.admin || S.roomId !== LOBBY){ toast('Solo lo staff, nella Hall'); return; }
+  if (!confirm('Arredare la Hall in automatico?\n\nGli oggetti già presenti tornano nello zaino di chi li aveva posati.')) return;
+  const upd = {};
+  for (const [iid, it] of S.items){ upd[`mobix/${LOBBY}/${iid}`] = null; if (it.owner) upd[`inventory/${it.owner}/${iid}/room`] = null; }
+  if ((S.room.w|0) < 16 || (S.room.h|0) < 16){ upd[`rooms/${LOBBY}/w`] = 16; upd[`rooms/${LOBBY}/h`] = 16; }
+  Object.assign(upd, { [`rooms/${LOBBY}/floor`]:'#b8a88c', [`rooms/${LOBBY}/wall`]:'#3e5a4a', [`rooms/${LOBBY}/fp`]:2, [`rooms/${LOBBY}/wp`]:3, [`rooms/${LOBBY}/am`]:2 });
+  const door = S.room.door || { x:0, y:6 }, later = {};
+  let n = 0;
+  for (const [type, x, y, r, st] of LOBBY_LAYOUT){
+    const def = MOBIX[type]; if (!def) continue;
+    if (!def.wall){ const [w, d] = dimsOf(def, normR(def, r)); if (door.x >= x && door.x < x + w && door.y >= y && door.y < y + d) continue; }
+    const key = push(ref(db, 'inventory/' + S.uid)).key;
+    upd[`inventory/${S.uid}/${key}`] = { type }; later[`inventory/${S.uid}/${key}/room`] = LOBBY;
+    upd[`mobix/${LOBBY}/${key}`] = { type, owner:S.uid, x, y, r: normR(def, r), ...(st ? { s:st } : {}) };
+    n++;
+  }
+  // due passi: le regole vogliono che un oggetto nasca nello zaino e poi venga segnato come posato
+  const ok = await guardedWrite(async () => { await update(ref(db), upd); await update(ref(db), later); }, 'furnish');
+  toast(ok ? `✨ Hall arredata con ${n} oggetti!` : 'Arredamento non riuscito');
+  if (ok) hide('rset');
+}
+
 function openCard(uid){
   const prof = S.profiles.get(uid); if (!prof) return;
   closePanels(); S.cardUid = uid;
@@ -3276,9 +3377,11 @@ function openRoomSet(){
   segButtons($('rsFp'), FLOOR_PAT, RS.fp, i => { RS.fp = i; preview(); });
   segButtons($('rsWp'), WALL_PAT, RS.wp, i => { RS.wp = i; preview(); });
   segButtons($('rsAm'), AMBIENT, RS.am, i => { RS.am = i; preview(); });
+  $('rsFurnish').classList.toggle('hidden', !(S.admin && S.roomId === LOBBY));
   show('rset');
 }
 $('rset').querySelector('[data-close]').onclick = () => { hide('rset'); if (S.room && RS.orig){ S.room = { ...S.room, ...RS.orig }; buildLayer(); } };
+$('rsFurnish').onclick = furnishLobby;
 $('rsGo').onclick = async () => {
   const name = $('rsName').value.trim();
   if (name.length < 3){ toast('Nome troppo corto'); return; }
