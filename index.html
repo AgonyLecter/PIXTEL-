@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#14151b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PIXTEL — l'hotel in pixel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
@@ -51,6 +54,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 .ov .box{width:100%;max-width:370px}
 #auth{align-items:flex-end;padding-bottom:max(16px,4vh);background:linear-gradient(180deg,rgba(14,15,19,0) 0%,rgba(14,15,19,0) 45%,rgba(14,15,19,.85) 80%)}
 #auth .logo{font-size:44px}
+@media (orientation:landscape) and (max-height:520px){ #auth{align-items:center;justify-content:flex-end;padding:10px 4vw;background:linear-gradient(90deg,rgba(14,15,19,0) 35%,rgba(14,15,19,.85) 75%)} #auth .logo{font-size:28px;margin-bottom:4px} #auth .logo small{font-size:10px;margin-top:3px} #auth .box{max-width:320px} #auth .bd{gap:6px;padding:10px} #auth .err{min-height:0} .ph-frame{height:94vh} }
 .ov .bd{gap:10px;padding:16px}
 .logo{font-family:'Silkscreen',monospace;font-weight:700;font-size:50px;text-align:center;line-height:1;color:#fff;text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;margin-bottom:10px;letter-spacing:2px}
 .logo span{color:var(--gold)}
@@ -67,6 +71,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 #roomName{font-family:'Silkscreen',monospace;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #roomSub{font-size:13px;color:#a9a8b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bRoomSet{width:30px;height:30px;flex:none;border:2px solid #000;border-radius:5px;background:#3a3c48;color:#fff;cursor:pointer;font-size:15px}
+#bFull{width:40px;height:40px;font-size:20px;cursor:pointer;display:grid;place-items:center;padding:0}
 #coinBox{padding:6px 12px;display:flex;align-items:center;gap:8px;font-family:'Silkscreen',monospace;font-size:15px;color:var(--gold)}
 .coin{width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3a8 0 18%,#f7cf3c 20% 60%,#c8930f 62%);border:2px solid #5a3e00}
 .net{width:8px;height:8px;border-radius:50%;background:#4dd769;display:inline-block;margin-right:5px;vertical-align:middle}
@@ -326,7 +331,7 @@ input.f:focus,textarea.f:focus{border-color:var(--head)}
 <!-- HUD -->
 <div id="hud" class="hidden">
   <div id="roomBox" class="chip"><div id="roomTxt"><div id="roomName">—</div><div id="roomSub"><span id="net" class="net"></span><span id="roomInfo"></span></div></div><button id="bRoomSet" class="hidden" title="Impostazioni stanza">⚙</button></div>
-  <div id="coinBox" class="chip"><div class="coin"></div><span id="coins">0</span></div>
+  <div class="row" style="gap:6px;flex-wrap:nowrap"><button id="bFull" class="chip hidden" title="Schermo intero">⛶</button><div id="coinBox" class="chip"><div class="coin"></div><span id="coins">0</span></div></div>
 </div>
 
 <div id="zoom" class="hidden">
@@ -3479,6 +3484,22 @@ async function endSession(){
   ['hud','bar','zoom','ibar',...PANELS,'notice','banned','nick'].forEach(hide);
 }
 async function logout(){ await endSession(); await signOut(auth); }
+
+/* schermo intero su telefono: al primo tocco; verticale e orizzontale vanno entrambi bene */
+const TOUCH = matchMedia('(pointer:coarse)').matches;
+const isFull = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function goFull(){
+  if (isFull()) return;
+  const d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
+  if (!f) return;
+  try { const pr = f.call(d, { navigationUI:'hide' }); if (pr && pr.catch) pr.catch(() => {}); } catch(e){}
+}
+function fullUi(){ $('bFull').classList.toggle('hidden', !TOUCH || isFull() || !(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)); setTimeout(resize, 120); }
+if (TOUCH) addEventListener('pointerup', goFull, { capture:true, once:true });
+$('bFull').onclick = goFull;
+document.addEventListener('fullscreenchange', fullUi); document.addEventListener('webkitfullscreenchange', fullUi);
+addEventListener('orientationchange', () => setTimeout(resize, 250));
+fullUi();
 
 setupIcons();
 showDemo();
