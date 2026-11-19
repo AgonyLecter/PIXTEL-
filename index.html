@@ -9,11 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#0b0a1a;--panel:#17142e;--panel2:#221d44;--line:#3a3270;--txt:#ece9ff;--mut:#8b84c9;--acc:#ff3fa4;--acc2:#3ff0ff;--gold:#ffd23f;--ok:#4dff8a;--bad:#ff4d6a}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'VT323',monospace;font-size:20px;user-select:none;-webkit-user-select:none;touch-action:none}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{-webkit-touch-callout:none;overscroll-behavior:none;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'VT323',monospace;font-size:20px;user-select:none;-webkit-user-select:none;touch-action:none}
 button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
 .hidden{display:none!important}
-canvas#view{position:fixed;inset:0;width:100vw;height:100vh;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer;display:block}
+canvas#view{position:fixed;left:0;top:0;outline:none;touch-action:none;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer;display:block}
 
 /* pannelli pixel */
 .px{background:var(--panel);border:3px solid var(--line);box-shadow:0 0 0 3px #07051a,6px 6px 0 #07051a}
@@ -91,6 +91,8 @@ input.f:focus,textarea.f:focus{border-color:var(--acc2)}
 .rtag{display:inline-block;font-family:'Silkscreen',monospace;font-size:10px;padding:1px 5px;border:2px solid #07051a;margin-right:4px;vertical-align:middle}
 .r-creator{background:var(--bad);color:#1a0006}.r-admin{background:var(--acc);color:#1a0010}
 .r-helper{background:var(--ok);color:#001a08}.r-vip{background:var(--gold);color:#1a1400}
+#zoom{position:fixed;right:10px;bottom:74px;z-index:10;display:flex;flex-direction:column;gap:6px}
+#zoom .btn{width:44px;height:44px;padding:0;font-size:20px;line-height:1}
 #tip{position:fixed;z-index:6;pointer-events:none;background:rgba(7,5,26,.9);border:2px solid var(--acc2);padding:0 6px;font-family:'Silkscreen',monospace;font-size:11px;transform:translate(-50%,-100%)}
 #toast{position:fixed;z-index:60;left:50%;top:70px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
 #toast div{background:var(--panel);border:3px solid var(--acc);padding:6px 12px;box-shadow:4px 4px 0 #07051a;animation:tin .2s steps(3)}
@@ -156,6 +158,11 @@ input.f:focus,textarea.f:focus{border-color:var(--acc2)}
 </div>
 
 <!-- BARRA -->
+<div id="zoom" class="hidden">
+  <button class="btn" id="zIn" title="Avvicina">＋</button>
+  <button class="btn" id="zOut" title="Allontana">－</button>
+  <button class="btn" id="zFit" title="Centra la stanza">⌖</button>
+</div>
 <div id="bar" class="hidden">
   <button class="btn" id="bHall" title="Hall">🏨<span class="lbl"> Hall</span></button>
   <button class="btn" id="bNav" title="Navigatore">🧭<span class="lbl"> Stanze</span></button>
@@ -389,14 +396,32 @@ function drawPreview(canvas, look){
 
 /* ================= RENDER ================= */
 const cv = $('view'), ctx = cv.getContext('2d');
-let PS = 3, stars = [];
-function resize(){
-  PS = innerWidth < 700 ? 2 : 3;
-  cv.width = Math.ceil(innerWidth/PS); cv.height = Math.ceil(innerHeight/PS);
+// PS = zoom (pixel dello schermo per ogni pixel del gioco). Si cambia col pizzico, la rotellina o i pulsanti.
+const ZMIN = 1, ZMAX = 8;
+const zDefault = () => innerWidth < 700 ? 2 : 3;
+let PS = (() => { try{ const z = parseFloat(localStorage.getItem('pxZoom')); if (z >= ZMIN && z <= ZMAX) return z; }catch(e){} return zDefault(); })();
+let stars = [];
+function setScale(z){
+  PS = Math.max(ZMIN, Math.min(ZMAX, z));
+  const w = Math.ceil(innerWidth/PS), h = Math.ceil(innerHeight/PS);
+  if (cv.width !== w || cv.height !== h){
+    cv.width = w; cv.height = h;
+    stars = Array.from({length:Math.floor(w*h/900)}, () => ({x:Math.random(), y:Math.random(), p:Math.random()*6.28}));
+  }
+  cv.style.width = (w*PS)+'px'; cv.style.height = (h*PS)+'px';
   ctx.imageSmoothingEnabled = false;
-  stars = Array.from({length:Math.floor(cv.width*cv.height/900)}, () => ({x:Math.random(), y:Math.random(), p:Math.random()*6.28}));
+  clearTimeout(setScale.t); setScale.t = setTimeout(() => { try{ localStorage.setItem('pxZoom', PS); }catch(e){} }, 400);
 }
+function resize(){ setScale(PS); }
 addEventListener('resize', resize); resize();
+// punto del mondo sotto (clientX, clientY) con lo zoom attuale
+function worldAt(x, y){ const o = origin(); return { x: x/PS - o.x, y: y/PS - o.y }; }
+// sposta la visuale perché il punto del mondo w stia sotto (clientX, clientY)
+function pinWorld(w, x, y){ const o = origin(); S.cam.x += (x/PS - w.x) - o.x; S.cam.y += (y/PS - w.y) - o.y; }
+function zoomAt(z, x = innerWidth/2, y = innerHeight/2){
+  if (!S.room){ setScale(z); return; }
+  const w = worldAt(x, y); setScale(z); pinWorld(w, x, y);
+}
 
 function origin(){
   const r = S.room;
@@ -535,16 +560,61 @@ function updateTip(){
 }
 
 /* ================= INPUT ================= */
-cv.addEventListener('pointerdown', e => { S.drag = {x:e.clientX, y:e.clientY, cx:S.cam.x, cy:S.cam.y, moved:false}; cv.setPointerCapture(e.pointerId); });
+const PT = new Map();   // dita/puntatori attivi sul canvas
+let pinch = null, noTap = false;
+const ptMid = () => { const a = [...PT.values()]; return { x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2, d:Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y) || 1 }; };
+function startDrag(x, y, moved, type){ S.drag = { x, y, cx:S.cam.x, cy:S.cam.y, moved, slop: type === 'mouse' ? 6 : 16 }; }
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  try { cv.setPointerCapture(e.pointerId); } catch(_){}
+  PT.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (PT.size === 1){ noTap = false; pinch = null; startDrag(e.clientX, e.clientY, false, e.pointerType); }
+  else if (PT.size === 2 && S.room){
+    S.drag = null; noTap = true;
+    const m = ptMid(); pinch = { z:PS, d:m.d, w:worldAt(m.x, m.y) };
+  }
+});
 cv.addEventListener('pointermove', e => {
-  if (e.pointerType === 'mouse') S.mouse = {x:e.clientX, y:e.clientY};
+  if (e.pointerType === 'mouse') S.mouse = { x:e.clientX, y:e.clientY };
+  if (!PT.has(e.pointerId)) return;
+  PT.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (pinch && PT.size >= 2){
+    const m = ptMid();
+    setScale(pinch.z * m.d / pinch.d);
+    pinWorld(pinch.w, m.x, m.y);   // zoom e spostamento insieme, come su una mappa
+    return;
+  }
   const d = S.drag; if (!d) return;
   const dx = e.clientX-d.x, dy = e.clientY-d.y;
-  if (!d.moved && Math.hypot(dx,dy) > 8) d.moved = true;
-  if (d.moved){ S.cam.x = Math.round(d.cx + dx/PS); S.cam.y = Math.round(d.cy + dy/PS); }
+  if (!d.moved && Math.hypot(dx,dy) > d.slop) d.moved = true;
+  if (d.moved){ S.cam.x = d.cx + dx/PS; S.cam.y = d.cy + dy/PS; }
 });
-cv.addEventListener('pointerup', e => { const d = S.drag; S.drag = null; if (d && !d.moved) handleClick(e.clientX/PS, e.clientY/PS); });
-cv.addEventListener('pointerleave', () => { S.mouse = null; });
+function pointerEnd(e, cancelled){
+  if (!PT.has(e.pointerId)) return;
+  PT.delete(e.pointerId);
+  if (PT.size === 1){            // da due dita a una: continua a trascinare senza fare "tap"
+    pinch = null; const [p] = PT.values(); startDrag(p.x, p.y, true, 'touch'); return;
+  }
+  if (PT.size === 0){
+    const d = S.drag; S.drag = null; pinch = null;
+    if (!cancelled && d && !d.moved && !noTap) handleClick(e.clientX/PS, e.clientY/PS);
+    noTap = false;
+  }
+}
+cv.addEventListener('pointerup', e => pointerEnd(e, false));
+cv.addEventListener('pointercancel', e => pointerEnd(e, true));
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') S.mouse = null; });
+cv.addEventListener('wheel', e => { e.preventDefault(); zoomAt(PS * (e.deltaY < 0 ? 1.15 : 1/1.15), e.clientX, e.clientY); }, { passive:false });
+cv.addEventListener('contextmenu', e => e.preventDefault());
+$('zIn').onclick = () => zoomAt(PS * 1.3);
+$('zOut').onclick = () => zoomAt(PS / 1.3);
+$('zFit').onclick = () => { S.cam = { x:0, y:0 }; if (S.room) fitRoom(); };
+// zoom che fa stare tutta la stanza nello schermo (lasciando spazio a HUD e barra)
+function fitRoom(){
+  const r = S.room, wpx = (r.w + r.h)*HW + 8, hpx = (r.w + r.h)*HH + WALL_H + 30;
+  setScale(Math.max(ZMIN, Math.min(ZMAX, Math.min(innerWidth / wpx, (innerHeight - 150) / hpx))));
+  S.cam = { x:0, y:0 };
+}
 function handleClick(lx, ly){
   if (!S.room) return;
   $('chatIn').blur();
@@ -893,14 +963,14 @@ async function startSession(profile){
   S.sess.push(onValue(ref(db,'roles'), s => { RL.roles = s.val() || {}; }, () => {}));
   S.sess.push(onValue(ref(db,'.info/connected'), s => $('net').classList.toggle('off', s.val() !== true)));
   ['auth','nick','notice','banned'].forEach(hide);
-  show('hud'); show('bar');
+  show('hud'); show('bar'); show('zoom');
   enterRoom(LOBBY);
 }
 async function showBan(b){
   S.banned = true;
   await leaveRoom();
   $('banReason').textContent = b && b.reason ? 'Motivo: '+b.reason : '';
-  ['hud','bar','nav','ward','card','notice'].forEach(hide);
+  ['hud','bar','zoom','nav','ward','card','notice'].forEach(hide);
   show('banned');
 }
 $('banOut').onclick = () => logout();
@@ -909,7 +979,7 @@ async function endSession(){
   S.sess.forEach(u => u()); S.sess = [];
   for (const [,u] of S.profSubs) u(); S.profSubs.clear(); S.profiles.clear();
   S.me = null; S.banned = false;
-  ['hud','bar','nav','ward','card','notice','banned','nick'].forEach(hide);
+  ['hud','bar','zoom','nav','ward','card','notice','banned','nick'].forEach(hide);
 }
 async function logout(){ await endSession(); await signOut(auth); }
 
