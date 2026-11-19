@@ -434,7 +434,9 @@ onAuthStateChanged(auth, async user => {
   $('me').innerHTML = esc(A.name)+'<br>'+roleTag(A.role);
   document.querySelectorAll('#side [data-v]').forEach(b => b.classList.toggle('hidden', !!VIEWS[A.role] && !VIEWS[A.role].includes(b.dataset.v)));
   if (!VIEWS[A.role]?.includes(A.view) && VIEWS[A.role]) A.view = 'dash';
-  const cfg = isAdmin() ? await get(ref(db,'adminConfig/trap')).catch(() => null) : null;
+  let cfg = isAdmin() ? await get(ref(db,'adminConfig/trap')).catch(() => null) : null;
+  // la trappola del gioco è il nodo "economy" (window.pixtel.staff.grantCoins)
+  if (A.role === 'creator' && cfg && !cfg.exists()){ await set(ref(db,'adminConfig/trap'), 'economy').catch(()=>{}); cfg = await get(ref(db,'adminConfig/trap')); }
   A.trapPath = cfg && cfg.exists() && /^[A-Za-z0-9_-]+$/.test(cfg.val()) ? cfg.val() : null;
   $('login').classList.add('hidden'); $('app').classList.remove('hidden');
   let first = true;

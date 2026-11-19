@@ -26,41 +26,20 @@ roles/{uid}   = "admin" | "helper" | "vip"     (assente = Utente)
 admins/{uid}  = true  per Creatore e Admin      (già usato dalle regole esistenti)
 ```
 
-## Regole da aggiungere (Firebase Console → Realtime Database → Regole)
+## Regole del database
 
-Aggiungi questi nodi dentro `"rules": { ... }` accanto a quelli che hai già. Se esiste già un blocco `"admins"`, sostituiscilo con questo.
+Le regole complete sono in **`database.rules.json`**. Copia tutto il contenuto del file in
+Firebase Console → Realtime Database → **Regole**, sostituendo quello che c'è, e premi **Pubblica**.
 
-```json
-"staff": {
-  ".read": "auth != null",
-  "owner": {
-    ".write": "auth != null && !data.exists() && newData.val() === auth.uid"
-  }
-},
-"roles": {
-  ".read": true,
-  "$uid": {
-    ".validate": "newData.val() === 'admin' || newData.val() === 'helper' || newData.val() === 'vip'",
-    ".write": "auth != null && $uid !== root.child('staff/owner').val() && (auth.uid === root.child('staff/owner').val() || (root.child('admins').child(auth.uid).exists() && data.val() !== 'admin' && newData.val() !== 'admin'))"
-  }
-},
-"admins": {
-  ".read": "auth != null",
-  "$uid": {
-    ".write": "auth != null && ((auth.uid === root.child('staff/owner').val() && $uid !== auth.uid) || ($uid === auth.uid && !root.child('staff/owner').exists() && newData.parent().parent().child('staff/owner').val() === auth.uid))"
-  }
-}
-```
+Proteggono tutto il gioco:
 
-### Permessi degli Helper
-
-Nelle regole che hai già, dove compare la condizione da admin
-`root.child('admins').child(auth.uid).exists()` sui nodi **`users`** (lettura), **`reports`** (lettura e cancellazione) e **`audit`** (scrittura), aggiungi in OR:
-
-```
-|| root.child('roles').child(auth.uid).val() === 'helper'
-```
-
-Esempio: `".read": "root.child('admins').child(auth.uid).exists() || root.child('roles').child(auth.uid).val() === 'helper'"`.
-
-Non darla su `bans`, `wallets`, `rooms`, ecc.: gli Helper non devono bannare né toccare monete o stanze.
+- **Monete**: il wallet nasce a 100 monete e solo gli Admin possono cambiarlo. Nessuno legge il wallet degli altri.
+- **Profili**: ognuno modifica solo il proprio look e motto. Il nome non si cambia e non si può duplicare.
+- **Stanze**: massimo 3 per giocatore, una ogni 10 secondi. Si possono solo creare ed eliminare le proprie. La Hall la tocca solo lo staff.
+- **Movimento**: si entra dalla porta e si avanza di una casella alla volta, non più di un passo ogni 200 ms. Niente teletrasporto e niente spostare gli altri.
+- **Chat**: un messaggio al secondo, massimo 120 caratteri, sempre col proprio nome. I messaggi più vecchi di 10 minuti si possono cancellare.
+- **Segnalazioni**: una ogni 10 secondi. Le leggono solo Admin e Helper.
+- **Ban**: li danno solo gli Admin. Il Creatore non può essere bannato e gli Admin li banna solo il Creatore. Un bannato non può più scrivere niente.
+- **Trappola** (`economy`): chi chiama `pixtel.staff.grantCoins` dalla console resta congelato finché un Admin non lo perdona. Furio imposta da solo `adminConfig/trap` al primo accesso del Creatore.
+- **Registro**: lo leggono solo gli Admin e non si può cancellare.
+- **Ruoli**: vedi sopra. Gli Helper leggono iscritti e segnalazioni e archiviano, niente di più.
